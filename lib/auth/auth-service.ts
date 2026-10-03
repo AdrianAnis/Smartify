@@ -2,6 +2,34 @@ import { randomInt } from "crypto";
 import bcrypt from "bcryptjs";
 import { supabaseServer } from "../supabase/server";
 
+const VERIFICATION_TTL_MINUTES = 15;
+
+// Buat kode OTP 6 digit baru untuk email ini (kode lama dihapus)
+async function createVerificationCode(email: string) {
+  await supabaseServer
+    .from("email_verifications")
+    .delete()
+    .eq("email", email);
+
+  const code = randomInt(100000, 1000000).toString();
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + VERIFICATION_TTL_MINUTES);
+
+  const { error } = await supabaseServer.from("email_verifications").insert({
+    email,
+    code,
+    expires_at: expiresAt.toISOString(),
+    is_used: false,
+  });
+
+  if (error) {
+    console.error("Email verification error:", error);
+    throw new Error("Gagal menyimpan data verifikasi");
+  }
+
+  return { code, expiresAt };
+}
+
 export async function initiateRegistration(
   email: string,
   password: string,
@@ -29,16 +57,11 @@ export async function initiateRegistration(
       .delete()
       .eq("email", email);
 
-    await supabaseServer
-      .from("email_verifications")
-      .delete()
-      .eq("email", email);
-
-    const verificationCode = randomInt(100000, 1000000).toString();
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
     const passwordHash = await bcrypt.hash(password, 10);
+    const tempExpiresAt = new Date();
+    tempExpiresAt.setMinutes(
+      tempExpiresAt.getMinutes() + VERIFICATION_TTL_MINUTES,
+    );
 
     const { error: tempError } = await supabaseServer
       .from("temporary_registrations")
@@ -46,7 +69,7 @@ export async function initiateRegistration(
         email,
         password_hash: passwordHash,
         nama,
-        expires_at: expiresAt.toISOString(),
+        expires_at: tempExpiresAt.toISOString(),
       });
 
     if (tempError) {
@@ -54,23 +77,109 @@ export async function initiateRegistration(
       throw new Error("Gagal menyimpan data sementara");
     }
 
-    const { error: verifError } = await supabaseServer
-      .from("email_verifications")
-      .insert({
-        email,
-        code: verificationCode,
-        expires_at: expiresAt.toISOString(),
-        is_used: false,
-      });
+    const { code, expiresAt } = await createVerificationCode(email);
 
-    if (verifError) {
-      console.error("Email verification error:", verifError);
-      throw new Error("Gagal menyimpan data verifikasi");
-    }
-
-    return { verificationCode, expiresAt };
+    return { verificationCode: code, expiresAt };
   } catch (error) {
     console.error("Initiate registration error:", error);
+    throw error;
+  }
+}
+
+// Kirim ulang kode untuk registrasi yang belum diverifikasi
+export async function resendVerificationCode(email: string) {
+  const { data: tempData } = await supabaseServer
+    .from("temporary_registrations")
+    .select("nama")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (!tempData) {
+    throw new Error(
+      "Data registrasi tidak ditemukan. Silakan registrasi ulang.",
+    );
+  }
+
+  const { code, expiresAt } = await createVerificationCode(email);
+
+  // Perpanjang data registrasi sementara agar sama dengan masa berlaku kode baru
+  await supabaseServer
+    .from("temporary_registrations")
+    .update({ expires_at: expiresAt.toISOString() })
+    .eq("email", email);
+
+  return { verificationCode: code, nama: tempData.nama as string };
+}
+
+// Verifikasi kode OTP lalu buat akun guru
+export async function verifyAndCreateUser(email: string, code: string) {
+  try {
+    const { data: verification, error: verifError } = await supabaseServer
+      .from("email_verifications")
+      .select("id, expires_at")
+      .eq("email", email)
+      .eq("code", code)
+      .eq("is_used", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (verifError || !verification) {
+      throw new Error("Kode verifikasi tidak valid");
+    }
+
+    const now = new Date();
+    if (now > new Date(verification.expires_at)) {
+      throw new Error("Kode verifikasi sudah kadaluarsa");
+    }
+
+    const { data: tempData, error: tempError } = await supabaseServer
+      .from("temporary_registrations")
+      .select("password_hash, nama, expires_at")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (tempError || !tempData) {
+      throw new Error(
+        "Data registrasi tidak ditemukan. Silakan registrasi ulang.",
+      );
+    }
+
+    if (now > new Date(tempData.expires_at)) {
+      throw new Error(
+        "Data registrasi sudah kadaluarsa. Silakan registrasi ulang.",
+      );
+    }
+
+    const { data: newUser, error: userError } = await supabaseServer
+      .from("users")
+      .insert({
+        email,
+        password_hash: tempData.password_hash,
+        nama: tempData.nama,
+        role: "guru",
+      })
+      .select("user_id, email, nama, role")
+      .single();
+
+    if (userError) {
+      console.error("User creation error:", userError);
+      throw new Error("Gagal membuat akun");
+    }
+
+    await supabaseServer
+      .from("email_verifications")
+      .update({ is_used: true })
+      .eq("id", verification.id);
+
+    await supabaseServer
+      .from("temporary_registrations")
+      .delete()
+      .eq("email", email);
+
+    return { user: newUser };
+  } catch (error) {
+    console.error("Verify and create user error:", error);
     throw error;
   }
 }

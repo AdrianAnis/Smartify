@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Dibuat saat dipakai, bukan saat file di-import, supaya build tidak gagal
+// ketika RESEND_API_KEY belum diisi.
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -8,7 +12,7 @@ export async function sendVerificationEmail(
   nama: string,
 ) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: process.env.FROM_EMAIL!,
       to: email,
       subject: "Verifikasi Email Smartify - Kode OTP Anda",
