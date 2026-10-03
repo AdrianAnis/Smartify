@@ -1,7 +1,10 @@
 import { randomInt } from "crypto";
 import bcrypt from "bcryptjs";
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
+import type { NextRequest } from "next/server";
 import { supabaseServer } from "../supabase/server";
+
+export const AUTH_COOKIE = "auth_token";
 
 const VERIFICATION_TTL_MINUTES = 15;
 const SESSION_DAYS = 1;
@@ -233,10 +236,12 @@ export async function loginUser(
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
 
+    // Bersihkan sesi kadaluarsa; sesi aktif di perangkat lain tetap dibiarkan
     await supabaseServer
       .from("user_sessions")
       .delete()
-      .eq("user_id", user.user_id);
+      .eq("user_id", user.user_id)
+      .lt("expires_at", new Date().toISOString());
 
     await supabaseServer.from("user_sessions").insert({
       user_id: user.user_id,
@@ -259,4 +264,47 @@ export async function loginUser(
     console.error("Login error:", error);
     throw error;
   }
+}
+
+// Ambil user dari JWT. Token harus valid DAN masih tercatat di user_sessions,
+// sehingga logout / reset password langsung membatalkan token.
+export async function getUserFromToken(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    const userId = Number(payload.userId);
+    if (!userId) return null;
+
+    const { data: session } = await supabaseServer
+      .from("user_sessions")
+      .select("id")
+      .eq("token", token)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (!session) return null;
+
+    const { data: user } = await supabaseServer
+      .from("users")
+      .select(
+        "user_id, email, nama, role, avatar_url, subscription_status, expired_at",
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+// Helper untuk route API: ambil user yang sedang login dari cookie auth_token
+export async function getUserFromRequest(request: NextRequest) {
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
+  if (!token) return null;
+  return getUserFromToken(token);
+}
+
+// Logout: hapus sesi agar token tidak bisa dipakai lagi
+export async function logoutUser(token: string) {
+  await supabaseServer.from("user_sessions").delete().eq("token", token);
 }

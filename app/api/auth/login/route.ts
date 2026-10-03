@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loginUser } from "@/lib/auth/auth-service";
+import { AUTH_COOKIE, loginUser } from "@/lib/auth/auth-service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       redirectTo: "/dashboard",
     });
 
-    response.cookies.set("auth_token", token, {
+    response.cookies.set(AUTH_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
