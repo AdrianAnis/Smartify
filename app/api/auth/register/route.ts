@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateRegistration } from "@/lib/auth/auth-service";
+import {
+  checkRateLimit,
+  rulesFor,
+  tooManyRequests,
+} from "@/lib/auth/rate-limit";
 import { sendVerificationEmail } from "@/lib/email/resend";
 
 export async function POST(request: NextRequest) {
@@ -31,7 +36,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { verificationCode, expiresAt } = await initiateRegistration(
+    const limit = await checkRateLimit(rulesFor("register", request, email));
+    if (!limit.allowed) return tooManyRequests(limit.retryAfter);
+
+    const { verificationCode } = await initiateRegistration(
       email,
       password,
       nama,

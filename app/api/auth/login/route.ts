@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE, loginUser } from "@/lib/auth/auth-service";
+import {
+  checkRateLimit,
+  rulesFor,
+  tooManyRequests,
+} from "@/lib/auth/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +19,9 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const limit = await checkRateLimit(rulesFor("login", request, email));
+    if (!limit.allowed) return tooManyRequests(limit.retryAfter);
 
     const { user, token, maxAge } = await loginUser(
       email,

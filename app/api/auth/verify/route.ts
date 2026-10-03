@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAndCreateUser } from "@/lib/auth/auth-service";
+import {
+  checkRateLimit,
+  rulesFor,
+  tooManyRequests,
+} from "@/lib/auth/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +25,9 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const limit = await checkRateLimit(rulesFor("verify", request, email));
+    if (!limit.allowed) return tooManyRequests(limit.retryAfter);
 
     const { user } = await verifyAndCreateUser(email, code);
 

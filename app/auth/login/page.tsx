@@ -1,6 +1,5 @@
 import LoginForm from "./LoginForm";
 
-// Hanya izinkan redirect ke path internal (cegah open redirect ke situs lain)
 function getSafeRedirect(value: string | string[] | undefined) {
   if (
     typeof value === "string" &&

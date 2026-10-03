@@ -1,4 +1,4 @@
-import { randomInt } from "crypto";
+import { createHash, randomBytes, randomInt } from "crypto";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import type { NextRequest } from "next/server";
@@ -9,6 +9,7 @@ export const AUTH_COOKIE = "auth_token";
 const VERIFICATION_TTL_MINUTES = 15;
 const SESSION_DAYS = 1;
 const SESSION_DAYS_REMEMBER = 30;
+const RESET_TOKEN_TTL_HOURS = 1;
 
 export function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
@@ -18,7 +19,6 @@ export function getJwtSecret() {
   return new TextEncoder().encode(secret);
 }
 
-// Buat kode OTP 6 digit baru untuk email ini (kode lama dihapus)
 async function createVerificationCode(email: string) {
   await supabaseServer
     .from("email_verifications")
@@ -60,7 +60,6 @@ export async function initiateRegistration(
       throw new Error("Email sudah terdaftar");
     }
 
-    // Bersihkan registrasi kadaluarsa + data lama untuk email ini
     await supabaseServer
       .from("temporary_registrations")
       .delete()
@@ -100,7 +99,6 @@ export async function initiateRegistration(
   }
 }
 
-// Kirim ulang kode untuk registrasi yang belum diverifikasi
 export async function resendVerificationCode(email: string) {
   const { data: tempData } = await supabaseServer
     .from("temporary_registrations")
@@ -116,7 +114,6 @@ export async function resendVerificationCode(email: string) {
 
   const { code, expiresAt } = await createVerificationCode(email);
 
-  // Perpanjang data registrasi sementara agar sama dengan masa berlaku kode baru
   await supabaseServer
     .from("temporary_registrations")
     .update({ expires_at: expiresAt.toISOString() })
@@ -125,7 +122,6 @@ export async function resendVerificationCode(email: string) {
   return { verificationCode: code, nama: tempData.nama as string };
 }
 
-// Verifikasi kode OTP lalu buat akun guru
 export async function verifyAndCreateUser(email: string, code: string) {
   try {
     const { data: verification, error: verifError } = await supabaseServer
@@ -198,7 +194,6 @@ export async function verifyAndCreateUser(email: string, code: string) {
   }
 }
 
-// Login: cek password, buat JWT, simpan sesi
 export async function loginUser(
   email: string,
   password: string,
@@ -220,7 +215,6 @@ export async function loginUser(
       throw new Error("Email atau password salah");
     }
 
-    // Masa berlaku JWT dan cookie harus sama: 1 hari, atau 30 hari jika "ingat saya"
     const days = rememberMe ? SESSION_DAYS_REMEMBER : SESSION_DAYS;
 
     const token = await new SignJWT({
@@ -236,7 +230,6 @@ export async function loginUser(
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
 
-    // Bersihkan sesi kadaluarsa; sesi aktif di perangkat lain tetap dibiarkan
     await supabaseServer
       .from("user_sessions")
       .delete()
@@ -266,8 +259,6 @@ export async function loginUser(
   }
 }
 
-// Ambil user dari JWT. Token harus valid DAN masih tercatat di user_sessions,
-// sehingga logout / reset password langsung membatalkan token.
 export async function getUserFromToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
@@ -297,14 +288,100 @@ export async function getUserFromToken(token: string) {
   }
 }
 
-// Helper untuk route API: ambil user yang sedang login dari cookie auth_token
 export async function getUserFromRequest(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   if (!token) return null;
   return getUserFromToken(token);
 }
 
-// Logout: hapus sesi agar token tidak bisa dipakai lagi
 export async function logoutUser(token: string) {
   await supabaseServer.from("user_sessions").delete().eq("token", token);
+}
+
+function hashPasswordResetToken(plainToken: string): string {
+  return createHash("sha256").update(plainToken, "utf8").digest("hex");
+}
+
+export async function createPasswordResetToken(
+  email: string,
+): Promise<{ plainToken: string; nama: string } | null> {
+  const { data: user, error } = await supabaseServer
+    .from("users")
+    .select("user_id, nama")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error || !user) {
+    return null;
+  }
+
+  const plainToken = randomBytes(32).toString("hex");
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + RESET_TOKEN_TTL_HOURS);
+
+  await supabaseServer
+    .from("password_reset_tokens")
+    .delete()
+    .eq("user_id", user.user_id);
+
+  const { error: insertError } = await supabaseServer
+    .from("password_reset_tokens")
+    .insert({
+      user_id: user.user_id,
+      token_hash: hashPasswordResetToken(plainToken),
+      expires_at: expiresAt.toISOString(),
+    });
+
+  if (insertError) {
+    console.error("password_reset_tokens insert:", insertError);
+    throw new Error("Gagal membuat tautan reset password");
+  }
+
+  return { plainToken, nama: user.nama };
+}
+
+export async function resetPasswordWithToken(
+  plainToken: string,
+  password: string,
+): Promise<void> {
+  if (!plainToken || plainToken.length < 32) {
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  const { data: row, error } = await supabaseServer
+    .from("password_reset_tokens")
+    .select("id, user_id, expires_at")
+    .eq("token_hash", hashPasswordResetToken(plainToken.trim()))
+    .maybeSingle();
+
+  if (error || !row) {
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  if (new Date() > new Date(row.expires_at)) {
+    await supabaseServer.from("password_reset_tokens").delete().eq("id", row.id);
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const { error: updateUserError } = await supabaseServer
+    .from("users")
+    .update({ password_hash: passwordHash })
+    .eq("user_id", row.user_id);
+
+  if (updateUserError) {
+    console.error("reset password user update:", updateUserError);
+    throw new Error("Gagal memperbarui password");
+  }
+
+  await supabaseServer
+    .from("password_reset_tokens")
+    .delete()
+    .eq("user_id", row.user_id);
+
+  await supabaseServer
+    .from("user_sessions")
+    .delete()
+    .eq("user_id", row.user_id);
 }

@@ -3,9 +3,6 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { AUTH_COOKIE, getJwtSecret } from "@/lib/auth/auth-service";
 
-// Pengecekan cepat: hanya tanda tangan + masa berlaku JWT, tanpa database.
-// Pengecekan sesi yang sebenarnya tetap dilakukan di setiap route API
-// lewat getUserFromRequest.
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
 
@@ -13,9 +10,7 @@ export async function proxy(request: NextRequest) {
     try {
       await jwtVerify(token, getJwtSecret());
       return NextResponse.next();
-    } catch {
-      // Token tidak valid atau kadaluarsa: perlakukan sebagai belum login
-    }
+    } catch {}
   }
 
   const loginUrl = new URL("/auth/login", request.url);
@@ -31,8 +26,6 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Hanya halaman guru yang dilindungi. Halaman siswa (waiting-room, take,
-// result, review) tetap publik karena siswa tidak punya akun.
 export const config = {
   matcher: [
     "/dashboard/:path*",
