@@ -1,8 +1,19 @@
 import { randomInt } from "crypto";
 import bcrypt from "bcryptjs";
+import { SignJWT } from "jose";
 import { supabaseServer } from "../supabase/server";
 
 const VERIFICATION_TTL_MINUTES = 15;
+const SESSION_DAYS = 1;
+const SESSION_DAYS_REMEMBER = 30;
+
+export function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET belum diatur");
+  }
+  return new TextEncoder().encode(secret);
+}
 
 // Buat kode OTP 6 digit baru untuk email ini (kode lama dihapus)
 async function createVerificationCode(email: string) {
@@ -180,6 +191,72 @@ export async function verifyAndCreateUser(email: string, code: string) {
     return { user: newUser };
   } catch (error) {
     console.error("Verify and create user error:", error);
+    throw error;
+  }
+}
+
+// Login: cek password, buat JWT, simpan sesi
+export async function loginUser(
+  email: string,
+  password: string,
+  rememberMe: boolean = false,
+) {
+  try {
+    const { data: user } = await supabaseServer
+      .from("users")
+      .select("user_id, email, nama, role, avatar_url, password_hash")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!user) {
+      throw new Error("Email atau password salah");
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
+      throw new Error("Email atau password salah");
+    }
+
+    // Masa berlaku JWT dan cookie harus sama: 1 hari, atau 30 hari jika "ingat saya"
+    const days = rememberMe ? SESSION_DAYS_REMEMBER : SESSION_DAYS;
+
+    const token = await new SignJWT({
+      userId: user.user_id,
+      email: user.email,
+      role: user.role,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(`${days}d`)
+      .sign(getJwtSecret());
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + days);
+
+    await supabaseServer
+      .from("user_sessions")
+      .delete()
+      .eq("user_id", user.user_id);
+
+    await supabaseServer.from("user_sessions").insert({
+      user_id: user.user_id,
+      token,
+      expires_at: expiresAt.toISOString(),
+    });
+
+    return {
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        nama: user.nama,
+        role: user.role,
+        avatar_url: user.avatar_url,
+      },
+      token,
+      maxAge: days * 24 * 60 * 60,
+    };
+  } catch (error) {
+    console.error("Login error:", error);
     throw error;
   }
 }
