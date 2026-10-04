@@ -50,7 +50,7 @@ export function AuthLayout({ children, title, description, formTitle, formDescri
           <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
             {/* Logo and Headings on top of form */}
             <div className="flex flex-col items-center text-center mb-8">
-              <Link href="/" className="mb-6">
+              <Link href="/" className="mt-6 mb-6">
                 <Image
                   src="/images/logo3.png"
                   alt="Logo Smartify"
