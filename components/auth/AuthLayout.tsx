@@ -6,10 +6,12 @@ export interface AuthLayoutProps {
   children: ReactNode;
   title?: string;
   description?: string;
+  formTitle?: string;
+  formDescription?: string;
   imageSrc?: string;
 }
 
-export function AuthLayout({ children, title, description, imageSrc }: AuthLayoutProps) {
+export function AuthLayout({ children, title, description, formTitle, formDescription, imageSrc }: AuthLayoutProps) {
   const defaultImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop";
 
   return (
@@ -46,9 +48,9 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
       <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
         <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
           <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
-            {/* Logo on top of form */}
-            <div className="flex justify-start mb-8">
-              <Link href="/">
+            {/* Logo and Headings on top of form */}
+            <div className="flex flex-col items-center text-center mb-8">
+              <Link href="/" className="mb-6">
                 <Image
                   src="/images/logo3.png"
                   alt="Logo Smartify"
@@ -57,6 +59,16 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
                   priority
                 />
               </Link>
+              {formTitle && (
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {formTitle}
+                </h1>
+              )}
+              {formDescription && (
+                <p className="text-gray-500 text-sm">
+                  {formDescription}
+                </p>
+              )}
             </div>
             
             {/* The Form Content */}
