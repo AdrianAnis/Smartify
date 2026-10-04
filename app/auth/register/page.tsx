@@ -33,8 +33,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password minimal 6 karakter");
+    if (password.length < 8) {
+      setError("Password minimal 8 karakter");
       return;
     }
 

@@ -189,7 +189,7 @@ export default function GenerateQuizPage() {
 
       setLoadingStep(LOADING_STEPS.length);
       setDone(true);
-      setTimeout(() => router.push("/dashboard"), 1200);
+      setTimeout(() => router.push(`/quiz/${data.quizId}/preview`), 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat kuis");
       setLoading(false);
@@ -460,7 +460,7 @@ export default function GenerateQuizPage() {
               </h3>
               <p className="text-sm text-muted">
                 {done
-                  ? "Mengarahkan ke dashboard..."
+                  ? "Membuka hasil kuis..."
                   : "Proses ini biasanya memakan waktu kurang dari 1 menit."}
               </p>
             </div>
