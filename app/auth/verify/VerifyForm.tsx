@@ -92,22 +92,22 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
         </p>
 
         {error && (
-          <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium text-center">
+          <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium text-center">
+          <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6 text-center">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 text-center"
+              className="block text-sm font-medium text-gray-700"
             >
               Email
             </label>
@@ -121,7 +121,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>

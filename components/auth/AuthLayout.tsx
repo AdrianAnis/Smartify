@@ -16,7 +16,7 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
     <div className="h-screen w-full flex bg-white overflow-hidden">
       {/* Left Column (Image and Text) - Fixed 60% */}
       <div className="hidden lg:flex lg:w-[60%] relative bg-gray-100 overflow-hidden">
-        {/* Background Image */}
+        {/* Background Image (No color overlay as requested) */}
         <div className="absolute inset-0 z-0">
           <Image
             src={imageSrc || defaultImage}
@@ -30,8 +30,8 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
         </div>
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full text-center">
-          <div className="mb-6 flex flex-col items-center">
+        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full">
+          <div className="mb-6">
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
               {title || "Transformasi Pendidikan dengan AI"}
             </h1>
@@ -45,24 +45,22 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
       {/* Right Column (Auth Form) - Scrollable 40% */}
       <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
         <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
-          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8 flex flex-col items-center">
-            {/* Logo on top of the form, centered */}
-            <div className="flex justify-center mb-4">
+          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
+            {/* Logo on top of form */}
+            <div className="flex justify-start mb-8">
               <Link href="/">
                 <Image
-                  src="/images/logo2.png"
+                  src="/images/logo3.png"
                   alt="Logo Smartify"
-                  width={140}
-                  height={46}
+                  width={160}
+                  height={52}
                   priority
                 />
               </Link>
             </div>
             
             {/* The Form Content */}
-            <div className="w-full text-center">
-              {children}
-            </div>
+            {children}
           </div>
         </main>
       </div>

@@ -69,11 +69,11 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 text-center"
+              className="block text-sm font-medium text-gray-700"
             >
               Email
             </label>
@@ -87,19 +87,27 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 text-center"
-            >
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Lupa password?
+              </Link>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <LockIcon className="h-5 w-5 text-gray-400" />
@@ -110,7 +118,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
+                className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
               <button
@@ -125,17 +133,9 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                 )}
               </button>
             </div>
-            <div className="text-center mt-2">
-              <Link
-                href="/auth/forgot-password"
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                Lupa password?
-              </Link>
-            </div>
           </div>
 
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="remember"
