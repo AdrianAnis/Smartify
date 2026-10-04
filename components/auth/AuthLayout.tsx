@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ReactNode } from "react";
+import Link from "next/link";
 
 export interface AuthLayoutProps {
   children: ReactNode;
@@ -12,14 +13,27 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
   const defaultImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop";
 
   return (
-    <div className="min-h-screen w-full flex bg-white">
-      {/* Left Column (Image and Text) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gray-100 overflow-hidden">
+    <div className="h-screen w-full flex bg-white overflow-hidden">
+      {/* Left Column (Image and Text) - Fixed 60% */}
+      <div className="hidden lg:flex lg:w-[60%] relative bg-gray-100 overflow-hidden">
+        {/* Logo over image */}
+        <div className="absolute top-8 left-10 xl:top-12 xl:left-16 z-20">
+          <Link href="/">
+            <Image
+              src="/images/logo3.png"
+              alt="Logo Smartify"
+              width={160}
+              height={52}
+              priority
+            />
+          </Link>
+        </div>
+
         {/* Background Image (No color overlay as requested) */}
         <div className="absolute inset-0 z-0">
           <Image
             src={imageSrc || defaultImage}
-            alt="Teacher teaching"
+            alt="Ilustrasi"
             fill
             className="object-cover"
             priority
@@ -29,31 +43,36 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
         </div>
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-end px-12 xl:px-20 pb-20 text-white w-full h-full">
+        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full">
           <div className="mb-6">
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
               {title || "Transformasi Pendidikan dengan AI"}
             </h1>
-            <p className="text-lg xl:text-xl text-white/90 max-w-lg leading-relaxed font-light">
+            <p className="text-lg xl:text-xl text-white/90 max-w-xl leading-relaxed font-light">
               {description || "Otomatisasi pembuatan kuis, analisis nilai, dan hasil belajar siswa secara instan dan cerdas dengan Smartify."}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Column (Auth Form) - Pure White background */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-white">
-        <main className="flex-1 flex items-center justify-center p-6 sm:p-12">
-          <div className="w-full max-w-[440px] mx-auto space-y-8">
-            <div className="flex justify-start mb-8">
-              <Image
-                src="/images/logo2.png"
-                alt="Logo Smartify"
-                width={140}
-                height={46}
-                priority
-              />
+      {/* Right Column (Auth Form) - Scrollable 40% */}
+      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+        <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
+          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
+            {/* Logo on mobile only, hidden on large screen because it's already on the image */}
+            <div className="flex justify-start mb-8 lg:hidden">
+              <Link href="/">
+                <Image
+                  src="/images/logo2.png"
+                  alt="Logo Smartify"
+                  width={140}
+                  height={46}
+                  priority
+                />
+              </Link>
             </div>
+            
+            {/* The Form Content */}
             {children}
           </div>
         </main>
