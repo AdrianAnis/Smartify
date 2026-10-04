@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { Footer } from "@/components/footer/footer";
 import {
   UserIcon,
   MailIcon,
   LockIcon,
   EyeIcon,
   EyeOffIcon,
+  ArrowRight
 } from "lucide-react";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,171 +64,179 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    alert("Daftar dengan Google akan segera hadir!");
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md mx-auto">
-          <div className="bg-card rounded-2xl shadow-sm p-8 md:p-10">
-            <div className="flex flex-col items-center mb-6">
-              <Image
-                src="/images/logo_smartify.png"
-                alt="Logo"
-                width={120}
-                height={40}
-                priority
+    <AuthLayout 
+      title="Mulai Perjalanan Anda" 
+      description="Bergabung dengan ribuan guru lain yang telah meningkatkan efisiensi mengajar mereka dengan Smartify."
+    >
+      <div>
+        <h1 className="text-3xl font-bold text-card-foreground mb-2">
+          Buat Akun Baru
+        </h1>
+        <p className="text-muted-foreground mb-8">
+          Isi detail di bawah ini untuk memulai
+        </p>
+
+        {error && (
+          <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="fullName"
+              className="block text-sm font-medium text-label"
+            >
+              Nama Lengkap
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <UserIcon className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <input
+                type="text"
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Mis. Budi Santoso"
+                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                required
               />
             </div>
+          </div>
 
-            <div className="border-t border-border mb-6" />
-
-            <h1 className="text-2xl font-bold text-card-foreground text-center mb-8">
-              Daftar Akun
-            </h1>
-
-            {error && (
-              <div className="mb-4 p-3 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm">
-                {error}
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-label"
+            >
+              Email
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <MailIcon className="h-5 w-5 text-muted-foreground" />
               </div>
-            )}
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nama@email.com"
+                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                required
+              />
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-medium text-label"
-                >
-                  Nama Lengkap
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <UserIcon className="h-5 w-5 text-muted" />
-                  </div>
-                  <input
-                    type="text"
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="John Cally"
-                    className="w-full pl-12 pr-4 py-3 bg-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    required
-                  />
-                </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-label"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <LockIcon className="h-5 w-5 text-muted-foreground" />
               </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-label"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <MailIcon className="h-5 w-5 text-muted" />
-                  </div>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full pl-12 pr-4 py-3 bg-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-label"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-muted" />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeOffIcon className="h-5 w-5 text-muted" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-muted" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-label"
-                >
-                  Konfirmasi Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-muted" />
-                  </div>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-12 pr-12 py-3 bg-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOffIcon className="h-5 w-5 text-muted" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-muted" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimal 8 karakter"
+                className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                required
+              />
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               >
-                {loading ? "Memproses..." : "Daftar"}
+                {showPassword ? (
+                  <EyeOffIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
               </button>
-            </form>
+            </div>
+          </div>
 
-            <p className="text-center text-card-foreground mt-6">
-              Sudah punya akun?{" "}
-              <Link
-                href="/auth/login"
-                className="text-primary font-medium hover:underline"
+          <div className="space-y-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-label"
+            >
+              Konfirmasi Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <LockIcon className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Ulangi password"
+                className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               >
-                Masuk
-              </Link>
-            </p>
+                {showConfirmPassword ? (
+                  <EyeOffIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 mt-4 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+          >
+            {loading ? "Memproses..." : "Daftar Akun"}
+            {!loading && <ArrowRight className="h-4 w-4" />}
+          </button>
+        </form>
+
+        <div className="mt-6 relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-background text-muted-foreground">
+              Atau
+            </span>
           </div>
         </div>
-      </main>
 
-      <Footer />
-    </div>
+        <div className="mt-6">
+          <GoogleLoginButton text="Daftar dengan Google" onClick={handleGoogleLogin} />
+        </div>
+
+        <p className="text-center text-muted-foreground mt-8 text-sm">
+          Sudah punya akun?{" "}
+          <Link
+            href="/auth/login"
+            className="text-primary font-semibold hover:underline"
+          >
+            Masuk di sini
+          </Link>
+        </p>
+      </div>
+    </AuthLayout>
   );
 }
