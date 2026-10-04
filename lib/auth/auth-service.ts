@@ -1,0 +1,387 @@
+import { createHash, randomBytes, randomInt } from "crypto";
+import bcrypt from "bcryptjs";
+import { SignJWT, jwtVerify } from "jose";
+import type { NextRequest } from "next/server";
+import { supabaseServer } from "../supabase/server";
+
+export const AUTH_COOKIE = "auth_token";
+
+const VERIFICATION_TTL_MINUTES = 15;
+const SESSION_DAYS = 1;
+const SESSION_DAYS_REMEMBER = 30;
+const RESET_TOKEN_TTL_HOURS = 1;
+
+export function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET belum diatur");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+async function createVerificationCode(email: string) {
+  await supabaseServer
+    .from("email_verifications")
+    .delete()
+    .eq("email", email);
+
+  const code = randomInt(100000, 1000000).toString();
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + VERIFICATION_TTL_MINUTES);
+
+  const { error } = await supabaseServer.from("email_verifications").insert({
+    email,
+    code,
+    expires_at: expiresAt.toISOString(),
+    is_used: false,
+  });
+
+  if (error) {
+    console.error("Email verification error:", error);
+    throw new Error("Gagal menyimpan data verifikasi");
+  }
+
+  return { code, expiresAt };
+}
+
+export async function initiateRegistration(
+  email: string,
+  password: string,
+  nama: string,
+) {
+  try {
+    const { data: existingUser } = await supabaseServer
+      .from("users")
+      .select("email")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingUser) {
+      throw new Error("Email sudah terdaftar");
+    }
+
+    await supabaseServer
+      .from("temporary_registrations")
+      .delete()
+      .lt("expires_at", new Date().toISOString());
+
+    await supabaseServer
+      .from("temporary_registrations")
+      .delete()
+      .eq("email", email);
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const tempExpiresAt = new Date();
+    tempExpiresAt.setMinutes(
+      tempExpiresAt.getMinutes() + VERIFICATION_TTL_MINUTES,
+    );
+
+    const { error: tempError } = await supabaseServer
+      .from("temporary_registrations")
+      .insert({
+        email,
+        password_hash: passwordHash,
+        nama,
+        expires_at: tempExpiresAt.toISOString(),
+      });
+
+    if (tempError) {
+      console.error("Temporary registration error:", tempError);
+      throw new Error("Gagal menyimpan data sementara");
+    }
+
+    const { code, expiresAt } = await createVerificationCode(email);
+
+    return { verificationCode: code, expiresAt };
+  } catch (error) {
+    console.error("Initiate registration error:", error);
+    throw error;
+  }
+}
+
+export async function resendVerificationCode(email: string) {
+  const { data: tempData } = await supabaseServer
+    .from("temporary_registrations")
+    .select("nama")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (!tempData) {
+    throw new Error(
+      "Data registrasi tidak ditemukan. Silakan registrasi ulang.",
+    );
+  }
+
+  const { code, expiresAt } = await createVerificationCode(email);
+
+  await supabaseServer
+    .from("temporary_registrations")
+    .update({ expires_at: expiresAt.toISOString() })
+    .eq("email", email);
+
+  return { verificationCode: code, nama: tempData.nama as string };
+}
+
+export async function verifyAndCreateUser(email: string, code: string) {
+  try {
+    const { data: verification, error: verifError } = await supabaseServer
+      .from("email_verifications")
+      .select("id, expires_at")
+      .eq("email", email)
+      .eq("code", code)
+      .eq("is_used", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (verifError || !verification) {
+      throw new Error("Kode verifikasi tidak valid");
+    }
+
+    const now = new Date();
+    if (now > new Date(verification.expires_at)) {
+      throw new Error("Kode verifikasi sudah kadaluarsa");
+    }
+
+    const { data: tempData, error: tempError } = await supabaseServer
+      .from("temporary_registrations")
+      .select("password_hash, nama, expires_at")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (tempError || !tempData) {
+      throw new Error(
+        "Data registrasi tidak ditemukan. Silakan registrasi ulang.",
+      );
+    }
+
+    if (now > new Date(tempData.expires_at)) {
+      throw new Error(
+        "Data registrasi sudah kadaluarsa. Silakan registrasi ulang.",
+      );
+    }
+
+    const { data: newUser, error: userError } = await supabaseServer
+      .from("users")
+      .insert({
+        email,
+        password_hash: tempData.password_hash,
+        nama: tempData.nama,
+        role: "guru",
+      })
+      .select("user_id, email, nama, role")
+      .single();
+
+    if (userError) {
+      console.error("User creation error:", userError);
+      throw new Error("Gagal membuat akun");
+    }
+
+    await supabaseServer
+      .from("email_verifications")
+      .update({ is_used: true })
+      .eq("id", verification.id);
+
+    await supabaseServer
+      .from("temporary_registrations")
+      .delete()
+      .eq("email", email);
+
+    return { user: newUser };
+  } catch (error) {
+    console.error("Verify and create user error:", error);
+    throw error;
+  }
+}
+
+export async function loginUser(
+  email: string,
+  password: string,
+  rememberMe: boolean = false,
+) {
+  try {
+    const { data: user } = await supabaseServer
+      .from("users")
+      .select("user_id, email, nama, role, avatar_url, password_hash")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!user) {
+      throw new Error("Email atau password salah");
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    if (!isValidPassword) {
+      throw new Error("Email atau password salah");
+    }
+
+    const days = rememberMe ? SESSION_DAYS_REMEMBER : SESSION_DAYS;
+
+    const token = await new SignJWT({
+      userId: user.user_id,
+      email: user.email,
+      role: user.role,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(`${days}d`)
+      .sign(getJwtSecret());
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + days);
+
+    await supabaseServer
+      .from("user_sessions")
+      .delete()
+      .eq("user_id", user.user_id)
+      .lt("expires_at", new Date().toISOString());
+
+    await supabaseServer.from("user_sessions").insert({
+      user_id: user.user_id,
+      token,
+      expires_at: expiresAt.toISOString(),
+    });
+
+    return {
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        nama: user.nama,
+        role: user.role,
+        avatar_url: user.avatar_url,
+      },
+      token,
+      maxAge: days * 24 * 60 * 60,
+    };
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
+  }
+}
+
+export async function getUserFromToken(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    const userId = Number(payload.userId);
+    if (!userId) return null;
+
+    const { data: session } = await supabaseServer
+      .from("user_sessions")
+      .select("id")
+      .eq("token", token)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+
+    if (!session) return null;
+
+    const { data: user } = await supabaseServer
+      .from("users")
+      .select(
+        "user_id, email, nama, role, avatar_url, subscription_status, expired_at",
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+export async function getUserFromRequest(request: NextRequest) {
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
+  if (!token) return null;
+  return getUserFromToken(token);
+}
+
+export async function logoutUser(token: string) {
+  await supabaseServer.from("user_sessions").delete().eq("token", token);
+}
+
+function hashPasswordResetToken(plainToken: string): string {
+  return createHash("sha256").update(plainToken, "utf8").digest("hex");
+}
+
+export async function createPasswordResetToken(
+  email: string,
+): Promise<{ plainToken: string; nama: string } | null> {
+  const { data: user, error } = await supabaseServer
+    .from("users")
+    .select("user_id, nama")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error || !user) {
+    return null;
+  }
+
+  const plainToken = randomBytes(32).toString("hex");
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + RESET_TOKEN_TTL_HOURS);
+
+  await supabaseServer
+    .from("password_reset_tokens")
+    .delete()
+    .eq("user_id", user.user_id);
+
+  const { error: insertError } = await supabaseServer
+    .from("password_reset_tokens")
+    .insert({
+      user_id: user.user_id,
+      token_hash: hashPasswordResetToken(plainToken),
+      expires_at: expiresAt.toISOString(),
+    });
+
+  if (insertError) {
+    console.error("password_reset_tokens insert:", insertError);
+    throw new Error("Gagal membuat tautan reset password");
+  }
+
+  return { plainToken, nama: user.nama };
+}
+
+export async function resetPasswordWithToken(
+  plainToken: string,
+  password: string,
+): Promise<void> {
+  if (!plainToken || plainToken.length < 32) {
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  const { data: row, error } = await supabaseServer
+    .from("password_reset_tokens")
+    .select("id, user_id, expires_at")
+    .eq("token_hash", hashPasswordResetToken(plainToken.trim()))
+    .maybeSingle();
+
+  if (error || !row) {
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  if (new Date() > new Date(row.expires_at)) {
+    await supabaseServer.from("password_reset_tokens").delete().eq("id", row.id);
+    throw new Error("Tautan tidak valid atau sudah kadaluarsa");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const { error: updateUserError } = await supabaseServer
+    .from("users")
+    .update({ password_hash: passwordHash })
+    .eq("user_id", row.user_id);
+
+  if (updateUserError) {
+    console.error("reset password user update:", updateUserError);
+    throw new Error("Gagal memperbarui password");
+  }
+
+  await supabaseServer
+    .from("password_reset_tokens")
+    .delete()
+    .eq("user_id", row.user_id);
+
+  await supabaseServer
+    .from("user_sessions")
+    .delete()
+    .eq("user_id", row.user_id);
+}
