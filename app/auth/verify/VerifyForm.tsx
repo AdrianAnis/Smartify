@@ -74,8 +74,8 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
 
   return (
     <AuthLayout 
-      title="Verifikasi Email" 
-      description="Masukkan kode 6 digit yang telah dikirim ke email Anda."
+      title="Amankan Akun Anda" 
+      description="Verifikasi email Anda untuk memastikan keamanan dan akses penuh ke seluruh fitur cerdas Smartify."
       imageSrc="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
@@ -84,6 +84,12 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
             <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
         </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+          Verifikasi Email
+        </h1>
+        <p className="text-gray-500 mb-8 text-sm leading-relaxed text-center">
+          Masukkan kode 6 digit yang telah dikirim ke email Anda.
+        </p>
 
         {error && (
           <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">

@@ -13,53 +13,56 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
   const defaultImage = "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop";
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src={imageSrc || defaultImage}
-          alt="Background"
-          fill
-          className="object-cover"
-          priority
-        />
-        {/* Dark overlay so the white form stands out */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div className="h-screen w-full flex bg-white overflow-hidden">
+      {/* Left Column (Image and Text) - Fixed 60% */}
+      <div className="hidden lg:flex lg:w-[60%] relative bg-gray-100 overflow-hidden">
+        {/* Background Image (No color overlay as requested) */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={imageSrc || defaultImage}
+            alt="Ilustrasi"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Subtle gradient at the bottom so text is readable if image is bright */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full">
+          <div className="mb-6">
+            <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
+              {title || "Transformasi Pendidikan dengan AI"}
+            </h1>
+            <p className="text-lg xl:text-xl text-white/90 max-w-xl leading-relaxed font-light">
+              {description || "Otomatisasi pembuatan kuis, analisis nilai, dan hasil belajar siswa secara instan dan cerdas dengan Smartify."}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Floating Form Card */}
-      <div className="relative z-10 w-full max-w-[480px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        <div className="p-8 sm:p-10 flex-1 overflow-y-auto custom-scrollbar">
-          {/* Logo on top of form */}
-          <div className="flex justify-center mb-8">
-            <Link href="/">
-              <Image
-                src="/images/logo3.png" 
-                alt="Logo Smartify"
-                width={160}
-                height={52}
-                priority
-              />
-            </Link>
+      {/* Right Column (Auth Form) - Scrollable 40% */}
+      <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
+        <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
+          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
+            {/* Logo on top of form */}
+            <div className="flex justify-start mb-8">
+              <Link href="/">
+                <Image
+                  src="/images/logo3.png"
+                  alt="Logo Smartify"
+                  width={160}
+                  height={52}
+                  priority
+                />
+              </Link>
+            </div>
+            
+            {/* The Form Content */}
+            {children}
           </div>
-          
-          {/* Centered Heading */}
-          <div className="text-center mb-8">
-            {title && (
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                {title}
-              </h1>
-            )}
-            {description && (
-              <p className="text-sm text-gray-500">
-                {description}
-              </p>
-            )}
-          </div>
-          
-          {/* The Form Content */}
-          {children}
-        </div>
+        </main>
       </div>
     </div>
   );
