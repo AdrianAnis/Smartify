@@ -50,25 +50,25 @@ export default function ForgotPasswordPage() {
       <div className="bg-white">
         {!sent ? (
           <>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
               Atur Ulang Password
             </h1>
-            <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+            <p className="text-gray-500 mb-8 text-sm leading-relaxed text-center">
               Masukkan email yang terdaftar. Kami akan mengirimkan tautan
               aman untuk mengatur ulang password Anda.
             </p>
 
             {error && (
-              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium text-center">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5 text-center">
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-center"
                 >
                   Email
                 </label>
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="nama@email.com"
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
                     required
                     autoComplete="email"
                   />
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
             <div className="pt-4">
               <Link
                 href="/auth/login"
-                className="inline-block w-full py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors text-center"
+                className="inline-flex items-center justify-center w-full py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors text-center"
               >
                 Kembali ke halaman masuk
               </Link>

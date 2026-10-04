@@ -64,16 +64,16 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       imageSrc="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
           Atur Password Baru
         </h1>
-        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+        <p className="text-gray-500 mb-8 text-sm leading-relaxed text-center">
           Buat password baru untuk akun Smartify Anda. Setelah diubah, Anda
           akan keluar dari semua perangkat.
         </p>
 
         {!token ? (
-          <div className="space-y-6">
+          <div className="space-y-6 text-center">
             <div className="p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
               Tautan reset tidak valid atau sudah kadaluarsa. Silakan minta tautan baru.
             </div>
@@ -87,22 +87,22 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         ) : (
           <>
             {error && (
-              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium text-center">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium text-center">
                 {success}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5 text-center">
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-center"
                 >
                   Password Baru
                 </label>
@@ -117,7 +117,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 8 karakter"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
                     required
                   />
                   <button
@@ -140,7 +140,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-center"
                 >
                   Konfirmasi Password Baru
                 </label>
@@ -155,7 +155,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Ulangi password baru"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors text-center"
                     required
                   />
                 </div>

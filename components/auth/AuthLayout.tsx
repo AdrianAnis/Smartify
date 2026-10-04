@@ -16,20 +16,7 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
     <div className="h-screen w-full flex bg-white overflow-hidden">
       {/* Left Column (Image and Text) - Fixed 60% */}
       <div className="hidden lg:flex lg:w-[60%] relative bg-gray-100 overflow-hidden">
-        {/* Logo over image */}
-        <div className="absolute top-8 left-10 xl:top-12 xl:left-16 z-20">
-          <Link href="/">
-            <Image
-              src="/images/logo3.png"
-              alt="Logo Smartify"
-              width={160}
-              height={52}
-              priority
-            />
-          </Link>
-        </div>
-
-        {/* Background Image (No color overlay as requested) */}
+        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
             src={imageSrc || defaultImage}
@@ -43,8 +30,8 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
         </div>
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full">
-          <div className="mb-6">
+        <div className="relative z-10 flex flex-col justify-end px-10 xl:px-16 pb-16 xl:pb-24 text-white w-full h-full text-center">
+          <div className="mb-6 flex flex-col items-center">
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
               {title || "Transformasi Pendidikan dengan AI"}
             </h1>
@@ -58,9 +45,9 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
       {/* Right Column (Auth Form) - Scrollable 40% */}
       <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
         <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
-          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
-            {/* Logo on mobile only, hidden on large screen because it's already on the image */}
-            <div className="flex justify-start mb-8 lg:hidden">
+          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8 flex flex-col items-center">
+            {/* Logo on top of the form, centered */}
+            <div className="flex justify-center mb-4">
               <Link href="/">
                 <Image
                   src="/images/logo2.png"
@@ -73,7 +60,9 @@ export function AuthLayout({ children, title, description, imageSrc }: AuthLayou
             </div>
             
             {/* The Form Content */}
-            {children}
+            <div className="w-full text-center">
+              {children}
+            </div>
           </div>
         </main>
       </div>
