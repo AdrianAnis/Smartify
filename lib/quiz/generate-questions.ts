@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { DIFFICULTY_LABELS } from "./labels";
 
 export const QUIZ_TYPES = ["pilihan_ganda", "isian_singkat", "campuran"] as const;
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -6,12 +7,6 @@ export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 export type QuizType = (typeof QUIZ_TYPES)[number];
 export type Difficulty = (typeof DIFFICULTIES)[number];
 export type QuestionType = "pilihan_ganda" | "isian_singkat";
-
-export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: "Mudah",
-  medium: "Sedang",
-  hard: "Sulit",
-};
 
 export interface GeneratedQuestion {
   teks_soal: string;

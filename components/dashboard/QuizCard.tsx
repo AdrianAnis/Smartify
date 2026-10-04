@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { FileText, Calendar } from "lucide-react";
+import { QUIZ_STATUS_STYLES, type QuizStatus } from "@/lib/quiz/labels";
 
-export type QuizStatus = "draft" | "published" | "waiting" | "ongoing" | "selesai";
+export type { QuizStatus };
 
 interface QuizCardProps {
   id: number;
@@ -11,20 +12,12 @@ interface QuizCardProps {
   status: QuizStatus;
 }
 
-const STATUS_STYLES: Record<QuizStatus, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "bg-gray-100 text-gray-700" },
-  published: { label: "Siap dimainkan", className: "bg-primary/10 text-primary" },
-  waiting: { label: "Ruang tunggu", className: "bg-warning-subtle text-warning-text" },
-  ongoing: { label: "Berlangsung", className: "bg-warning-subtle text-warning-text" },
-  selesai: { label: "Selesai", className: "bg-success-subtle text-success-text" },
-};
-
 export function QuizCard({ id, title, totalSoal, tanggal, status }: QuizCardProps) {
-  const badge = STATUS_STYLES[status] ?? STATUS_STYLES.draft;
+  const badge = QUIZ_STATUS_STYLES[status] ?? QUIZ_STATUS_STYLES.draft;
 
   return (
     <Link
-      href={`/quiz/${id}/detail`}
+      href={`/quiz/${id}/preview`}
       className="group block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md"
     >
       <div className="h-1.5 bg-primary" />

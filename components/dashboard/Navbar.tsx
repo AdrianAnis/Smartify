@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { ArrowLeft, LogOut, Menu } from "lucide-react";
 
 interface UserData {
   user_id: number;
@@ -13,6 +14,9 @@ interface UserData {
 
 interface NavbarProps {
   onOpenMobileNav?: () => void;
+  fullWidth?: boolean;
+  backHref?: string;
+  backLabel?: string;
 }
 
 function getInitials(name: string) {
@@ -21,7 +25,12 @@ function getInitials(name: string) {
   return name.substring(0, 2).toUpperCase();
 }
 
-export function Navbar({ onOpenMobileNav }: NavbarProps) {
+export function Navbar({
+  onOpenMobileNav,
+  fullWidth = false,
+  backHref,
+  backLabel = "Kembali ke Dashboard",
+}: NavbarProps) {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,10 +64,14 @@ export function Navbar({ onOpenMobileNav }: NavbarProps) {
   };
 
   return (
-    <nav className="fixed top-0 right-0 left-0 z-40 h-16 border-b border-border bg-card shadow-sm md:left-64">
+    <nav
+      className={`fixed top-0 right-0 left-0 z-40 h-16 border-b border-border bg-card shadow-sm ${
+        fullWidth ? "" : "md:left-64"
+      }`}
+    >
       <div className="flex h-full items-center justify-between gap-3 px-4 sm:px-6">
-        <div className="flex min-w-0 flex-1 items-center">
-          {onOpenMobileNav && (
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {onOpenMobileNav && !fullWidth && (
             <button
               type="button"
               onClick={onOpenMobileNav}
@@ -67,6 +80,15 @@ export function Navbar({ onOpenMobileNav }: NavbarProps) {
             >
               <Menu className="h-6 w-6" />
             </button>
+          )}
+          {backHref && (
+            <Link
+              href={backHref}
+              className="flex min-w-0 items-center gap-2 text-muted transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-5 w-5 shrink-0" />
+              <span className="hidden truncate text-sm font-medium sm:inline">{backLabel}</span>
+            </Link>
           )}
         </div>
 
