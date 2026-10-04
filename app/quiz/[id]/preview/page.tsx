@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Clock, FileText, Gauge, Hash, Layers, Target } from "lucide-react";
+import { Clock, FileText, Gauge, Hash, Layers, Lock, Pencil, Target, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { QuestionEditor } from "@/components/quiz/QuestionEditor";
+import { EDITABLE_STATUSES } from "@/lib/quiz/editable";
 import {
   DIFFICULTY_LABELS,
   QUESTION_TYPE_LABELS,
@@ -32,7 +35,19 @@ function InfoItem({
   );
 }
 
-function QuestionItem({ soal, index }: { soal: QuizSoal; index: number }) {
+function QuestionItem({
+  soal,
+  index,
+  editable,
+  onEdit,
+  onDelete,
+}: {
+  soal: QuizSoal;
+  index: number;
+  editable: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const isPilgan = soal.tipe_soal === "pilihan_ganda";
   const correctIndex = soal.pilihan.findIndex((p) => p.is_benar);
   const correct = correctIndex >= 0 ? soal.pilihan[correctIndex] : null;
@@ -41,13 +56,33 @@ function QuestionItem({ soal, index }: { soal: QuizSoal; index: number }) {
     <div className="border-b border-gray-100 pb-8 last:border-b-0 last:pb-0">
       <div className="mb-4 flex items-start justify-between gap-4">
         <h3 className="text-lg font-bold text-gray-800">Soal {index + 1}.</h3>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <span className="whitespace-nowrap rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             {soal.topik}
           </span>
           <span className="whitespace-nowrap rounded-full bg-gray-100 px-3 py-1 text-xs uppercase tracking-wider text-gray-400">
             {QUESTION_TYPE_LABELS[soal.tipe_soal] ?? soal.tipe_soal}
           </span>
+          {editable && (
+            <>
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label={`Edit soal ${index + 1}`}
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-input hover:text-card-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onDelete}
+                aria-label={`Hapus soal ${index + 1}`}
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-strong"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -117,6 +152,10 @@ export default function QuizPreviewPage() {
   const [pembuat, setPembuat] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ soal: QuizSoal; index: number } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -146,6 +185,26 @@ export default function QuizPreviewPage() {
     return [...counts.entries()];
   }, [soal]);
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch(`/api/quiz/${id}/questions/${deleteTarget.soal.soal_id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSoal((prev) => prev.filter((s) => s.soal_id !== deleteTarget.soal.soal_id));
+      setKuis((prev) => (prev ? { ...prev, total_soal: data.totalSoal } : prev));
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Gagal menghapus soal");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -170,6 +229,8 @@ export default function QuizPreviewPage() {
   }
 
   const status = QUIZ_STATUS_STYLES[kuis.status] ?? QUIZ_STATUS_STYLES.draft;
+  const editable = EDITABLE_STATUSES.includes(kuis.status);
+  const topicNames = topics.map(([t]) => t);
 
   return (
     <>
@@ -225,14 +286,58 @@ export default function QuizPreviewPage() {
         </div>
       )}
 
+      {!editable && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <Lock className="h-4 w-4 shrink-0" />
+          Soal tidak bisa diubah karena kuis sudah dibuka untuk siswa.
+        </div>
+      )}
+
       <div className="space-y-10 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-        {soal.map((s, index) => (
-          <QuestionItem key={s.soal_id} soal={s} index={index} />
-        ))}
+        {soal.map((s, index) =>
+          editingId === s.soal_id ? (
+            <QuestionEditor
+              key={s.soal_id}
+              quizId={id}
+              soal={s}
+              index={index}
+              topics={topicNames}
+              onCancel={() => setEditingId(null)}
+              onSaved={(updated) => {
+                setSoal((prev) => prev.map((item) => (item.soal_id === updated.soal_id ? updated : item)));
+                setEditingId(null);
+              }}
+            />
+          ) : (
+            <QuestionItem
+              key={s.soal_id}
+              soal={s}
+              index={index}
+              editable={editable && editingId === null}
+              onEdit={() => setEditingId(s.soal_id)}
+              onDelete={() => {
+                setDeleteError("");
+                setDeleteTarget({ soal: s, index });
+              }}
+            />
+          ),
+        )}
         {soal.length === 0 && (
           <div className="py-12 text-center text-gray-500">Belum ada soal untuk kuis ini.</div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={`Hapus soal ${(deleteTarget?.index ?? 0) + 1}?`}
+        description="Soal beserta pilihan, kunci, dan penjelasannya akan dihapus permanen. Nomor soal setelahnya akan bergeser. Tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Hapus"
+        loadingLabel="Menghapus..."
+        loading={deleting}
+        error={deleteError}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }
