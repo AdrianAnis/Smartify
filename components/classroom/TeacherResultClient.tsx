@@ -17,7 +17,10 @@ import {
   HelpCircle,
   Eye,
   Calendar,
+  Sparkles,
 } from "lucide-react";
+
+import { ClassroomAnalysisTab } from "./ClassroomAnalysisTab";
 
 interface StudentResult {
   pesertaId: number;
@@ -112,7 +115,7 @@ export function TeacherResultClient({
   initialTopicAnalysis,
   initialQuestionAnalysis,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"siswa" | "topik">("siswa");
+  const [activeTab, setActiveTab] = useState<"siswa" | "topik" | "ai">("siswa");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "lulus" | "remedial">("all");
   const [isExporting, setIsExporting] = useState(false);
@@ -126,10 +129,20 @@ export function TeacherResultClient({
     });
   }, [initialStudents, searchQuery, filterStatus]);
 
-  async function handleDownloadCsv() {
+  async function handleDownloadExcel() {
     setIsExporting(true);
     try {
-      window.location.href = `/api/quiz/${kuisId}/export`;
+      window.location.href = `/api/quiz/${kuisId}/export?format=xlsx`;
+    } catch {
+    } finally {
+      setTimeout(() => setIsExporting(false), 1500);
+    }
+  }
+
+  async function handleDownloadWord() {
+    setIsExporting(true);
+    try {
+      window.location.href = `/api/quiz/${kuisId}/export?format=docx`;
     } catch {
     } finally {
       setTimeout(() => setIsExporting(false), 1500);
@@ -171,12 +184,21 @@ export function TeacherResultClient({
           </Link>
           <button
             type="button"
-            onClick={handleDownloadCsv}
+            onClick={handleDownloadWord}
+            disabled={isExporting}
+            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold shadow-sm transition-all hover:bg-secondary/90 disabled:opacity-50 border border-border"
+          >
+            <Download className="h-4 w-4" />
+            <span>Naskah Soal</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadExcel}
             disabled={isExporting}
             className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
-            <span>{isExporting ? "Mengunduh..." : "Download CSV Nilai"}</span>
+            <span>{isExporting ? "Mengunduh..." : "Nilai (Excel)"}</span>
           </button>
         </div>
       </div>
@@ -255,6 +277,18 @@ export function TeacherResultClient({
         >
           <BarChart3 className="h-4 w-4" />
           <span>Analisis Topik & Soal</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("ai")}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+            activeTab === "ai"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted hover:bg-input hover:text-card-foreground"
+          }`}
+        >
+          <Sparkles className="h-4 w-4 text-amber-500" />
+          <span>AI Analysis</span>
         </button>
       </div>
 
@@ -449,6 +483,10 @@ export function TeacherResultClient({
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === "ai" && (
+        <ClassroomAnalysisTab kuisId={kuisId} />
       )}
     </div>
   );
