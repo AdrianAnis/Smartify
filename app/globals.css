@@ -7,7 +7,6 @@
   --card-foreground: #1a1a1a;
   --primary: #4ac9ff;
   --primary-foreground: #ffffff;
-  --primary-strong: #0e7490;
   --muted: #6b7280;
   --muted-foreground: #9ca3af;
   --border: #e5e7eb;
@@ -35,7 +34,6 @@
   --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-primary-strong: var(--primary-strong);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
