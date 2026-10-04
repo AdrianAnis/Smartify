@@ -46,7 +46,6 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   };
 
   const handleGoogleLogin = () => {
-    // Placeholder for Google OAuth logic
     alert("Login dengan Google akan segera hadir!");
   };
 
@@ -54,17 +53,18 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
     <AuthLayout 
       title="Selamat Datang Kembali" 
       description="Masuk untuk melanjutkan pengalaman mengajar yang lebih cerdas dan efisien bersama Smartify."
+      imageSrc="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-card-foreground mb-2">
+      <div className="bg-white">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Masuk ke Akun
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-gray-500 mb-8">
           Silakan masukkan kredensial Anda untuk melanjutkan
         </p>
 
         {error && (
-          <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+          <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
             {error}
           </div>
         )}
@@ -73,13 +73,13 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-muted-foreground" />
+                <MailIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="email"
@@ -87,7 +87,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>
@@ -97,7 +97,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-label"
+                className="block text-sm font-medium text-gray-700"
               >
                 Password
               </label>
@@ -110,7 +110,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <LockIcon className="h-5 w-5 text-muted-foreground" />
+                <LockIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
@@ -118,13 +118,13 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showPassword ? (
                   <EyeOffIcon className="h-5 w-5" />
@@ -141,9 +141,9 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
               id="remember"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-border text-primary focus:ring-ring accent-primary"
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-0 accent-primary"
             />
-            <label htmlFor="remember" className="text-sm font-medium text-muted-foreground cursor-pointer select-none">
+            <label htmlFor="remember" className="text-sm font-medium text-gray-500 cursor-pointer select-none">
               Ingat saya selama 30 hari
             </label>
           </div>
@@ -151,7 +151,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {loading ? "Memproses..." : "Masuk Sekarang"}
             {!loading && <ArrowRight className="h-4 w-4" />}
@@ -160,10 +160,10 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
 
         <div className="mt-8 relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
+            <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-background text-muted-foreground">
+            <span className="px-4 bg-white text-gray-500">
               Atau masuk dengan
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
           <GoogleLoginButton onClick={handleGoogleLogin} />
         </div>
 
-        <p className="text-center text-muted-foreground mt-8 text-sm">
+        <p className="text-center text-gray-500 mt-8 text-sm">
           Belum punya akun?{" "}
           <Link
             href="/auth/register"

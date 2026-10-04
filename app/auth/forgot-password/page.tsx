@@ -45,20 +45,21 @@ export default function ForgotPasswordPage() {
     <AuthLayout 
       title="Lupa Password?" 
       description="Jangan khawatir! Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang password akun Smartify Anda."
+      imageSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2000&auto=format&fit=crop"
     >
-      <div>
+      <div className="bg-white">
         {!sent ? (
           <>
-            <h1 className="text-3xl font-bold text-card-foreground mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Atur Ulang Password
             </h1>
-            <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
+            <p className="text-gray-500 mb-8 text-sm leading-relaxed">
               Masukkan email yang terdaftar. Kami akan mengirimkan tautan
               aman untuk mengatur ulang password Anda.
             </p>
 
             {error && (
-              <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
                 {error}
               </div>
             )}
@@ -67,13 +68,13 @@ export default function ForgotPasswordPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-label"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <MailIcon className="h-5 w-5 text-muted-foreground" />
+                    <MailIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type="email"
@@ -81,7 +82,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="nama@email.com"
-                    className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                     required
                     autoComplete="email"
                   />
@@ -91,7 +92,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {loading ? "Mengirim..." : "Kirim Tautan Reset"}
                 {!loading && <ArrowRight className="h-4 w-4" />}
@@ -100,30 +101,30 @@ export default function ForgotPasswordPage() {
           </>
         ) : (
           <div className="text-center space-y-6">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
               <MailIcon className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-card-foreground">
+            <h1 className="text-3xl font-bold text-gray-900">
               Periksa email Anda
             </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-gray-500 text-sm leading-relaxed">
               Jika alamat ini terhubung dengan akun Smartify, email berisi
               tautan atur ulang password telah dikirim. Buka pesan tersebut,
               ketuk{" "}
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-gray-900">
                 Atur password baru
               </span>
               , lalu buat password yang kuat. Setelah selesai, kembali ke
               halaman masuk untuk login dengan password yang baru.
             </p>
-            <p className="text-muted-foreground text-xs leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl border border-border">
+            <p className="text-gray-500 text-xs leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
               Tidak melihat email? Periksa folder spam atau promosi. Tautan
               biasanya berlaku satu jam demi keamanan akun Anda.
             </p>
             <div className="pt-4">
               <Link
                 href="/auth/login"
-                className="inline-block w-full py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors text-center"
+                className="inline-block w-full py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors text-center"
               >
                 Kembali ke halaman masuk
               </Link>
@@ -132,7 +133,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {!sent && (
-          <p className="text-center text-muted-foreground mt-8 text-sm">
+          <p className="text-center text-gray-500 mt-8 text-sm">
             Ingat password Anda?{" "}
             <Link
               href="/auth/login"

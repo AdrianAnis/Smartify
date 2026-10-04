@@ -76,28 +76,29 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
     <AuthLayout 
       title="Amankan Akun Anda" 
       description="Verifikasi email Anda untuk memastikan keamanan dan akses penuh ke seluruh fitur cerdas Smartify."
+      imageSrc="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
     >
-      <div>
+      <div className="bg-white">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
             <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
           Verifikasi Email
         </h1>
-        <p className="text-muted-foreground mb-8 text-sm leading-relaxed text-center">
+        <p className="text-gray-500 mb-8 text-sm leading-relaxed text-center">
           Masukkan kode 6 digit yang telah dikirim ke email Anda.
         </p>
 
         {error && (
-          <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+          <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 border border-success-subtle bg-success-subtle text-success-text rounded-xl text-sm font-medium">
+          <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
             {success}
           </div>
         )}
@@ -106,13 +107,13 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-muted-foreground" />
+                <MailIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="email"
@@ -120,7 +121,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>
@@ -129,7 +130,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
           <div className="space-y-2">
             <label
               htmlFor="code"
-              className="block text-sm font-medium text-label text-center"
+              className="block text-sm font-medium text-gray-700 text-center"
             >
               Kode Verifikasi
             </label>
@@ -142,7 +143,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               placeholder="000000"
               maxLength={6}
-              className="w-full px-4 py-4 bg-input border border-transparent rounded-xl text-center text-3xl tracking-[0.5em] font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              className="w-full px-4 py-4 bg-white border border-gray-300 rounded-xl text-center text-3xl tracking-[0.5em] font-semibold focus:outline-none focus:border-primary transition-colors"
               required
             />
           </div>
@@ -150,7 +151,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {loading ? "Memproses..." : "Verifikasi Sekarang"}
             {!loading && <ArrowRight className="h-4 w-4" />}
@@ -167,7 +168,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
             Kirim ulang kode verifikasi
           </button>
 
-          <p className="text-muted-foreground text-sm">
+          <p className="text-gray-500 text-sm">
             Kembali ke{" "}
             <Link
               href="/auth/login"

@@ -61,24 +61,25 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     <AuthLayout 
       title="Atur Ulang Password" 
       description="Buat password baru yang kuat untuk mengamankan akun Anda dan kembali menggunakan fitur Smartify."
+      imageSrc="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-card-foreground mb-2">
+      <div className="bg-white">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Atur Password Baru
         </h1>
-        <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
+        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
           Buat password baru untuk akun Smartify Anda. Setelah diubah, Anda
           akan keluar dari semua perangkat.
         </p>
 
         {!token ? (
           <div className="space-y-6">
-            <div className="p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+            <div className="p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
               Tautan reset tidak valid atau sudah kadaluarsa. Silakan minta tautan baru.
             </div>
             <Link
               href="/auth/forgot-password"
-              className="inline-flex w-full items-center justify-center py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+              className="inline-flex w-full items-center justify-center py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors"
             >
               Minta Tautan Baru
             </Link>
@@ -86,13 +87,13 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         ) : (
           <>
             {error && (
-              <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-6 p-4 border border-success-subtle bg-success-subtle text-success-text rounded-xl text-sm font-medium">
+              <div className="mb-6 p-4 border border-green-200 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
                 {success}
               </div>
             )}
@@ -101,13 +102,13 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-label"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Password Baru
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-muted-foreground" />
+                    <LockIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -116,7 +117,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 8 karakter"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                   <button
@@ -125,7 +126,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     aria-label={
                       showPassword ? "Sembunyikan password" : "Tampilkan password"
                     }
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOffIcon className="h-5 w-5" />
@@ -139,13 +140,13 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-label"
+                  className="block text-sm font-medium text-gray-700"
                 >
                   Konfirmasi Password Baru
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <LockIcon className="h-5 w-5 text-muted-foreground" />
+                    <LockIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -154,7 +155,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Ulangi password baru"
                     autoComplete="new-password"
-                    className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                     required
                   />
                 </div>
@@ -163,7 +164,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
               <button
                 type="submit"
                 disabled={loading || !!success}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {loading ? "Menyimpan..." : "Simpan Password Baru"}
                 {!loading && <ArrowRight className="h-4 w-4" />}
@@ -172,7 +173,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           </>
         )}
 
-        <p className="text-center text-muted-foreground mt-8 text-sm">
+        <p className="text-center text-gray-500 mt-8 text-sm">
           Ingat password Anda?{" "}
           <Link
             href="/auth/login"

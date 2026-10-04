@@ -21,7 +21,7 @@ export async function sendVerificationEmail(
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: 'Poppins', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
+        <body style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
           <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
             <div style="background: linear-gradient(135deg, #4ac9ff 0%, #2d9cdb 100%); padding: 30px 20px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Smartify</h1>
@@ -87,7 +87,7 @@ export async function sendPasswordResetEmail(
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: 'Poppins', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 24px 0;">
+        <body style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 24px 0;">
           <div style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
             <div style="background: linear-gradient(135deg, #4ac9ff 0%, #2d9cdb 100%); padding: 28px 24px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 26px;">Smartify</h1>

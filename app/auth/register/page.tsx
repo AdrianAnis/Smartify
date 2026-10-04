@@ -72,17 +72,18 @@ export default function RegisterPage() {
     <AuthLayout 
       title="Mulai Perjalanan Anda" 
       description="Bergabung dengan ribuan guru lain yang telah meningkatkan efisiensi mengajar mereka dengan Smartify."
+      imageSrc="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-card-foreground mb-2">
+      <div className="bg-white">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Buat Akun Baru
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-gray-500 mb-8">
           Isi detail di bawah ini untuk memulai
         </p>
 
         {error && (
-          <div className="mb-6 p-4 border border-danger-border bg-danger-subtle text-danger-text rounded-xl text-sm font-medium">
+          <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
             {error}
           </div>
         )}
@@ -91,13 +92,13 @@ export default function RegisterPage() {
           <div className="space-y-2">
             <label
               htmlFor="fullName"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Nama Lengkap
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <UserIcon className="h-5 w-5 text-muted-foreground" />
+                <UserIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
@@ -105,7 +106,7 @@ export default function RegisterPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Mis. Budi Santoso"
-                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>
@@ -114,13 +115,13 @@ export default function RegisterPage() {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-muted-foreground" />
+                <MailIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="email"
@@ -128,7 +129,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full pl-12 pr-4 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
             </div>
@@ -137,13 +138,13 @@ export default function RegisterPage() {
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <LockIcon className="h-5 w-5 text-muted-foreground" />
+                <LockIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
@@ -151,13 +152,13 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Minimal 8 karakter"
-                className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showPassword ? (
                   <EyeOffIcon className="h-5 w-5" />
@@ -171,13 +172,13 @@ export default function RegisterPage() {
           <div className="space-y-2">
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-label"
+              className="block text-sm font-medium text-gray-700"
             >
               Konfirmasi Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <LockIcon className="h-5 w-5 text-muted-foreground" />
+                <LockIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type={showConfirmPassword ? "text" : "password"}
@@ -185,13 +186,13 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Ulangi password"
-                className="w-full pl-12 pr-12 py-3 bg-input border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
               >
                 {showConfirmPassword ? (
                   <EyeOffIcon className="h-5 w-5" />
@@ -205,7 +206,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 mt-4 py-3 px-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 mt-4 py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {loading ? "Memproses..." : "Daftar Akun"}
             {!loading && <ArrowRight className="h-4 w-4" />}
@@ -214,10 +215,10 @@ export default function RegisterPage() {
 
         <div className="mt-6 relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
+            <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-background text-muted-foreground">
+            <span className="px-4 bg-white text-gray-500">
               Atau
             </span>
           </div>
@@ -227,7 +228,7 @@ export default function RegisterPage() {
           <GoogleLoginButton text="Daftar dengan Google" onClick={handleGoogleLogin} />
         </div>
 
-        <p className="text-center text-muted-foreground mt-8 text-sm">
+        <p className="text-center text-gray-500 mt-8 text-sm">
           Sudah punya akun?{" "}
           <Link
             href="/auth/login"
