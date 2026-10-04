@@ -262,6 +262,7 @@ export async function generateQuestions(
         config: {
           responseMimeType: "application/json",
           responseJsonSchema: RESPONSE_SCHEMA,
+          thinkingConfig: { thinkingBudget: 0 },
         },
       });
       text = response.text;
