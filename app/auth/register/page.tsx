@@ -70,17 +70,11 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout 
-      title="Mulai Perjalanan Anda" 
-      description="Bergabung dengan ribuan guru lain yang telah meningkatkan efisiensi mengajar mereka dengan Smartify."
+      title="Buat Akun Baru" 
+      description="Isi detail di bawah ini untuk memulai"
       imageSrc="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Buat Akun Baru
-        </h1>
-        <p className="text-gray-500 mb-8">
-          Isi detail di bawah ini untuk memulai
-        </p>
 
         {error && (
           <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">

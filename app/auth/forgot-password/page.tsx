@@ -43,20 +43,13 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout 
-      title="Lupa Password?" 
-      description="Jangan khawatir! Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang password akun Smartify Anda."
+      title={sent ? "" : "Atur Ulang Password"}
+      description={sent ? "" : "Masukkan email yang terdaftar. Kami akan mengirimkan tautan aman untuk mengatur ulang password Anda."}
       imageSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
         {!sent ? (
           <>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Atur Ulang Password
-            </h1>
-            <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-              Masukkan email yang terdaftar. Kami akan mengirimkan tautan
-              aman untuk mengatur ulang password Anda.
-            </p>
 
             {error && (
               <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">

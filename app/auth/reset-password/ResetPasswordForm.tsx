@@ -59,18 +59,11 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   return (
     <AuthLayout 
-      title="Atur Ulang Password" 
-      description="Buat password baru yang kuat untuk mengamankan akun Anda dan kembali menggunakan fitur Smartify."
+      title="Atur Password Baru" 
+      description="Buat password baru untuk akun Smartify Anda. Setelah diubah, Anda akan keluar dari semua perangkat."
       imageSrc="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Atur Password Baru
-        </h1>
-        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-          Buat password baru untuk akun Smartify Anda. Setelah diubah, Anda
-          akan keluar dari semua perangkat.
-        </p>
 
         {!token ? (
           <div className="space-y-6">
