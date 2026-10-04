@@ -11,7 +11,7 @@ export async function sendVerificationEmail(
 ) {
   try {
     const { error } = await getResend().emails.send({
-      from: process.env.FROM_EMAIL!,
+      from: process.env.FROM_EMAIL || "Smartify <onboarding@resend.dev>",
       to: email,
       subject: "Verifikasi Email Smartify - Kode OTP Anda",
       html: `
@@ -77,7 +77,7 @@ export async function sendPasswordResetEmail(
 ) {
   try {
     const { error } = await getResend().emails.send({
-      from: process.env.FROM_EMAIL!,
+      from: process.env.FROM_EMAIL || "Smartify <onboarding@resend.dev>",
       to: email,
       subject: "Atur ulang password akun Smartify Anda",
       html: `
