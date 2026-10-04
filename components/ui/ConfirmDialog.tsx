@@ -8,6 +8,7 @@ interface ConfirmDialogProps {
   loadingLabel?: string;
   loading?: boolean;
   error?: string;
+  tone?: "danger" | "primary";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   loadingLabel = "Memproses...",
   loading = false,
   error,
+  tone = "danger",
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -55,7 +57,9 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="rounded-xl bg-danger-strong px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className={`rounded-xl px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 ${
+              tone === "danger" ? "bg-danger-strong hover:bg-red-700" : "bg-primary hover:bg-primary/90"
+            }`}
           >
             {loading ? loadingLabel : confirmLabel}
           </button>

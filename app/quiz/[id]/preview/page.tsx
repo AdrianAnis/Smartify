@@ -3,7 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Clock, FileText, Gauge, Hash, Layers, Lock, Pencil, Target, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Gauge,
+  Hash,
+  Layers,
+  Lock,
+  Pencil,
+  Target,
+  Trash2,
+} from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { QuestionEditor } from "@/components/quiz/QuestionEditor";
 import { EDITABLE_STATUSES } from "@/lib/quiz/editable";
@@ -156,6 +168,13 @@ export default function QuizPreviewPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ soal: QuizSoal; index: number } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState("");
+  const [publishedNotice, setPublishedNotice] = useState(false);
+  const [deleteQuizOpen, setDeleteQuizOpen] = useState(false);
+  const [deletingQuiz, setDeletingQuiz] = useState(false);
+  const [deleteQuizError, setDeleteQuizError] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -228,23 +247,72 @@ export default function QuizPreviewPage() {
     );
   }
 
+  const handlePublish = async () => {
+    setPublishing(true);
+    setPublishError("");
+    try {
+      const res = await fetch(`/api/quiz/${id}/publish`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setKuis((prev) => (prev ? { ...prev, status: "published" } : prev));
+      setPublishOpen(false);
+      setPublishedNotice(true);
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : "Gagal mempublish kuis");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleDeleteQuiz = async () => {
+    setDeletingQuiz(true);
+    setDeleteQuizError("");
+    try {
+      const res = await fetch(`/api/quiz/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      router.replace("/dashboard");
+    } catch (err) {
+      setDeleteQuizError(err instanceof Error ? err.message : "Gagal menghapus kuis");
+      setDeletingQuiz(false);
+    }
+  };
+
   const status = QUIZ_STATUS_STYLES[kuis.status] ?? QUIZ_STATUS_STYLES.draft;
+  const canDeleteQuiz = !["waiting", "ongoing"].includes(kuis.status);
   const editable = EDITABLE_STATUSES.includes(kuis.status);
   const topicNames = topics.map(([t]) => t);
 
   return (
     <>
       <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
-          Generate Quiz {">"} Preview
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-800">{kuis.judul}</h1>
-          <span className={`rounded-full px-3 py-1 text-xs font-medium ${status.className}`}>
-            {status.label}
-          </span>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+              Generate Quiz {">"} Preview
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-800">{kuis.judul}</h1>
+              <span className={`rounded-full px-3 py-1 text-xs font-medium ${status.className}`}>
+                {status.label}
+              </span>
+            </div>
+            {pembuat && <p className="mt-1 text-sm text-gray-500">Dibuat oleh: {pembuat}</p>}
+          </div>
+          {canDeleteQuiz && (
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteQuizError("");
+                setDeleteQuizOpen(true);
+              }}
+              className="flex items-center gap-2 rounded-full border border-danger-border px-4 py-2 text-sm font-medium text-danger-strong transition-colors hover:bg-danger-subtle"
+            >
+              <Trash2 className="h-4 w-4" />
+              Hapus kuis
+            </button>
+          )}
         </div>
-        {pembuat && <p className="mt-1 text-sm text-gray-500">Dibuat oleh: {pembuat}</p>}
 
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           <InfoItem icon={FileText} label="Jumlah Soal" value={`${soal.length} soal`} />
@@ -283,6 +351,13 @@ export default function QuizPreviewPage() {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {publishedNotice && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          Kuis berhasil dipublish dan siap dimainkan. Soal masih bisa diedit sampai ruang tunggu dibuka.
         </div>
       )}
 
@@ -326,6 +401,47 @@ export default function QuizPreviewPage() {
           <div className="py-12 text-center text-gray-500">Belum ada soal untuk kuis ini.</div>
         )}
       </div>
+
+      {kuis.status === "draft" && editingId === null && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            type="button"
+            onClick={() => {
+              setPublishError("");
+              setPublishOpen(true);
+            }}
+            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40"
+          >
+            Publish Kuis
+            <ArrowRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={publishOpen}
+        tone="primary"
+        title="Publish kuis?"
+        description={`Kuis "${kuis.judul}" dengan ${soal.length} soal akan siap dimainkan. Soal masih bisa diedit sampai ruang tunggu dibuka.`}
+        confirmLabel="Publish"
+        loadingLabel="Mempublish..."
+        loading={publishing}
+        error={publishError}
+        onConfirm={handlePublish}
+        onCancel={() => setPublishOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={deleteQuizOpen}
+        title="Hapus kuis?"
+        description={`Kuis "${kuis.judul}" beserta semua soal, kunci, dan penjelasannya akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Hapus kuis"
+        loadingLabel="Menghapus..."
+        loading={deletingQuiz}
+        error={deleteQuizError}
+        onConfirm={handleDeleteQuiz}
+        onCancel={() => setDeleteQuizOpen(false)}
+      />
 
       <ConfirmDialog
         open={deleteTarget !== null}
