@@ -68,8 +68,10 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-border bg-white font-sans">
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-8">
+        <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          
+          {/* Left: Logo & Back Button */}
+          <div className="flex flex-1 items-center justify-start">
             <Link href="/dashboard" className="flex items-center gap-2 mr-4">
               <Image
                 src="/images/logo3.png"
@@ -92,31 +94,32 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
                 </Link>
               </div>
             )}
-
-            {/* Desktop Navigation */}
-            {!backHref && (
-              <div className="hidden md:flex items-center gap-1">
-                {menuItems.map((item) => {
-                  const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-gray-50 hover:text-foreground"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4">
+          {/* Center: Desktop Navigation */}
+          {!backHref && (
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-2">
+              {menuItems.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-gray-50 hover:text-foreground"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Right: Actions */}
+          <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
             <button className="hidden md:flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90">
               <Zap className="h-4 w-4 fill-white" />
               <span>Upgrade Premium</span>
