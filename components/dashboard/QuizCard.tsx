@@ -18,14 +18,14 @@ export function QuizCard({ id, title, totalSoal, tanggal, status }: QuizCardProp
   return (
     <Link
       href={`/quiz/${id}/preview`}
-      className="group block overflow-hidden rounded-xl border border-border bg-card transition-colors duration-200 hover:border-primary/50"
+      className="group block overflow-hidden rounded-md border border-border bg-card transition-colors duration-200 hover:border-primary/50"
     >
       <div className="h-1.5 bg-primary" />
 
       <div className="p-4 sm:p-5">
         <div className="mb-3 flex items-start justify-between gap-2">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}
+            className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${badge.className}`}
           >
             {badge.label}
           </span>

@@ -105,7 +105,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    className={`px-5 py-2 rounded-md text-sm font-semibold transition-colors ${
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-gray-50 hover:text-foreground"
@@ -120,20 +120,20 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
 
           {/* Right: Actions */}
           <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
-            <button className="hidden md:flex items-center gap-2 rounded-full bg-white border border-border px-4 py-1.5 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
+            <button className="hidden md:flex items-center gap-2 rounded-md bg-white border border-border px-4 py-1.5 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
               <Zap className="h-4 w-4 text-primary" />
               <span>Upgrade Premium</span>
             </button>
 
-            <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-gray-100 hover:text-foreground">
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:bg-gray-100 hover:text-foreground">
               <Bell className="h-5 w-5" />
-              <span className="absolute right-[6px] top-[6px] h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
+              <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white" />
             </button>
 
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 border border-primary/20 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 border border-primary/20 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
               >
                 {user ? getInitials(user.nama) : "?"}
               </button>
@@ -141,7 +141,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
               {userMenuOpen && user && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-white py-2 z-50">
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-md border border-border bg-white py-2 z-50">
                     <div className="px-4 pb-2 border-b border-border">
                       <p className="truncate text-sm font-bold text-foreground">{user.nama}</p>
                       <p className="truncate text-xs font-medium text-muted-foreground">{user.email}</p>
@@ -162,7 +162,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
             </div>
 
             <button
-              className="md:hidden p-2 text-muted-foreground hover:bg-gray-50 rounded-lg"
+              className="md:hidden p-2 text-muted-foreground hover:bg-gray-50 rounded-md"
               onClick={() => setMobileNavOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -178,7 +178,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
           <div className="fixed inset-y-0 right-0 w-3/4 max-w-sm bg-white border-l border-border px-6 py-6 font-sans flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Menu</span>
-              <button onClick={() => setMobileNavOpen(false)} className="p-2 text-muted-foreground hover:bg-gray-50 rounded-lg">
+              <button onClick={() => setMobileNavOpen(false)} className="p-2 text-muted-foreground hover:bg-gray-50 rounded-md">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -188,7 +188,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-semibold text-muted-foreground hover:bg-gray-50 hover:text-foreground"
+                  className="flex items-center gap-3 px-4 py-3 rounded-md text-base font-semibold text-muted-foreground hover:bg-gray-50 hover:text-foreground"
                 >
                   <item.icon className="h-5 w-5" />
                   {item.name}
@@ -196,7 +196,7 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
               ))}
             </div>
             <div className="pt-6 border-t border-border">
-              <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-white border border-border px-4 py-3 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
+              <button className="flex w-full items-center justify-center gap-2 rounded-md bg-white border border-border px-4 py-3 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
                 <Zap className="h-4 w-4 text-primary" />
                 Upgrade Premium
               </button>
