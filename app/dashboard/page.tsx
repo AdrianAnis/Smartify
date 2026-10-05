@@ -94,7 +94,7 @@ export default function DashboardPage() {
                       aria-pressed={viewMode === mode}
                       className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-initial sm:px-4 ${
                         viewMode === mode
-                          ? "bg-background text-primary shadow-sm"
+                          ? "bg-background text-primary"
                           : "text-muted hover:text-card-foreground"
                       }`}
                     >
@@ -145,7 +145,7 @@ export default function DashboardPage() {
           )}
 
           {searchHasNoMatch && (
-            <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center shadow-sm">
+            <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                 <Search className="h-8 w-8 text-muted-foreground" />
               </div>

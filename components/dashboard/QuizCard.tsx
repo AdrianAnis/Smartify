@@ -18,7 +18,7 @@ export function QuizCard({ id, title, totalSoal, tanggal, status }: QuizCardProp
   return (
     <Link
       href={`/quiz/${id}/preview`}
-      className="group block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md"
+      className="group block overflow-hidden rounded-xl border border-border bg-card transition-colors duration-200 hover:border-primary/50"
     >
       <div className="h-1.5 bg-primary" />
 
