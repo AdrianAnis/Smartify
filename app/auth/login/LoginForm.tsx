@@ -16,7 +16,6 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,7 +28,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, rememberMe }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -130,18 +129,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="remember"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-0 accent-primary"
-            />
-            <label htmlFor="remember" className="text-sm font-medium text-gray-500 cursor-pointer select-none">
-              Ingat saya selama 30 hari
-            </label>
-          </div>
+
 
           <button
             type="submit"
