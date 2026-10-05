@@ -121,7 +121,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
           Kode verifikasi 6 digit telah dikirim ke <span className="font-bold text-gray-900">{email}</span>. Silakan periksa kotak masuk (inbox) atau folder spam Anda.
         </>
       }
-      imageSrc="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2000&auto=format&fit=crop"
+      imageSrc="https://images.unsplash.com/photo-1544717301-9bc0429d2b27?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
 

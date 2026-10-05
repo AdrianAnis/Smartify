@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
       description="Jangan khawatir! Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang password akun Smartify Anda."
       formTitle={sent ? "" : "Atur Ulang Password"}
       formDescription={sent ? "" : "Masukkan email yang terdaftar. Kami akan mengirimkan tautan aman untuk mengatur ulang password Anda."}
-      imageSrc="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=2000&auto=format&fit=crop"
+      imageSrc="https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
         {!sent ? (

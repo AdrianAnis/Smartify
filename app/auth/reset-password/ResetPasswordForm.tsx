@@ -63,7 +63,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       description="Buat password baru yang kuat untuk mengamankan akun Anda dan kembali menggunakan fitur Smartify."
       formTitle="Atur Password Baru"
       formDescription="Buat password baru untuk akun Smartify Anda. Setelah diubah, Anda akan keluar dari semua perangkat."
-      imageSrc="https://images.unsplash.com/photo-1580894732444-8ecded7900cd?q=80&w=2000&auto=format&fit=crop"
+      imageSrc="https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
 
