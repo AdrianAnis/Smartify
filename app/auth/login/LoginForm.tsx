@@ -54,7 +54,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       description="Masuk untuk melanjutkan pengalaman mengajar yang lebih cerdas dan efisien bersama Smartify."
       formTitle="Masuk ke Akun"
       formDescription="Silakan masukkan kredensial Anda untuk melanjutkan"
-      imageSrc="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto=format&fit=crop"
+      imageSrc="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
         {error && (

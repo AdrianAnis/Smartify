@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MailIcon, ArrowRight, ShieldCheck } from "lucide-react";
+import { MailIcon, ArrowRight } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 
 interface VerifyFormProps {
@@ -77,15 +77,14 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
       title="Amankan Akun Anda" 
       description="Verifikasi email Anda untuk memastikan keamanan dan akses penuh ke seluruh fitur cerdas Smartify."
       formTitle="Verifikasi Email"
-      formDescription="Masukkan kode 6 digit yang telah dikirim ke email Anda."
-      imageSrc="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2000&auto=format&fit=crop"
+      formDescription={
+        <>
+          Kode verifikasi 6 digit telah dikirim ke <span className="font-bold text-gray-900">{email}</span>. Silakan periksa kotak masuk (inbox) atau folder spam Anda.
+        </>
+      }
+      imageSrc="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
-            <ShieldCheck className="w-8 h-8 text-primary" />
-          </div>
-        </div>
 
         {error && (
           <div className="mb-6 p-4 border border-red-200 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
@@ -100,28 +99,6 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MailIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@email.com"
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:border-primary transition-colors"
-                required
-              />
-            </div>
-          </div>
 
           <div className="space-y-2">
             <label
