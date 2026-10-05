@@ -3,14 +3,17 @@ import { getUserFromRequest } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY as string,
-});
-
 export async function POST(req: Request) {
   try {
     const user = await getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const apiKey = process.env.API_GEMINI_QUIZ;
+    if (!apiKey) {
+      return NextResponse.json({ error: "API_GEMINI_QUIZ environment variable is missing" }, { status: 500 });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     const body = await req.json();
     const { kuisId } = body;
@@ -106,38 +109,36 @@ Data Soal:
 ${questionAnalysis.map(q => `- Soal ${q.urutan} (${q.topik}): ${q.accuracy}% benar - "${q.teks_soal}"`).join("\n")}
 
 Tugas Anda:
-Buatkan "Teaching Recommendation" (Rekomendasi Strategi Mengajar) untuk Guru berdasarkan data di atas.
-Anda harus mengidentifikasi topik mana yang lemah, memberikan bukti numerik spesifik dari soal/topik, dan memberikan rekomendasi strategi konkret.
+Buatkan "Insight dan Rekomendasi" yang mendalam bagi Guru untuk mengevaluasi pemahaman siswa secara keseluruhan.
+Anda harus:
+1. Menyusun sebuah paragraf penjelasan utuh yang merangkum performa kelas, meng-highlight kelemahan terbesar (terutama topik/soal yang tingkat akurasinya paling rendah).
+2. Membuat poin-poin spesifik mengenai materi apa saja yang belum dikuasai (contoh: akurasi di bawah kkm atau di bawah 50%).
+3. Berikan saran cara mengajarkannya kembali kepada guru.
 
-Gunakan format list rekomendasi, dimana setiap item memiliki:
-- problem: Masalah utama yang ditemukan
-- evidence: Bukti numerik dari data soal/topik
-- recommendation: Strategi pembelajaran yang disarankan
-
-Output dalam JSON sesuai schema.
+Format dalam JSON sesuai dengan schema yang diminta.
 `;
 
     const responseSchema: Schema = {
       type: Type.OBJECT,
       properties: {
-        recommendations: {
+        paragraf_penjelasan: {
+          type: Type.STRING,
+          description: "Satu paragraf utuh yang menjelaskan kondisi kelas, pencapaian siswa secara general, serta menggarisbawahi topik-topik yang belum dikuasai secara umum."
+        },
+        materi_belum_dikuasai: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              problem: { type: Type.STRING },
-              evidence: { type: Type.STRING },
-              recommendation: { type: Type.STRING },
+              materi: { type: Type.STRING, description: "Nama materi/topik yang belum dikuasai" },
+              penjelasan: { type: Type.STRING, description: "Bukti dan penjelasan mengapa materi ini belum dikuasai" },
+              rekomendasi: { type: Type.STRING, description: "Rekomendasi konkret cara mengajarkan atau meninjau ulang materi ini di kelas" },
             },
-            required: ["problem", "evidence", "recommendation"]
+            required: ["materi", "penjelasan", "rekomendasi"]
           }
-        },
-        summary: {
-          type: Type.STRING,
-          description: "Ringkasan singkat tentang performa kelas"
         }
       },
-      required: ["recommendations", "summary"]
+      required: ["paragraf_penjelasan", "materi_belum_dikuasai"]
     };
 
     const response = await ai.models.generateContent({

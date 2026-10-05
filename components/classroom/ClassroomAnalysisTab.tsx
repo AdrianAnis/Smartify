@@ -54,25 +54,34 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
       {analysis && (
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h3 className="font-bold text-card-foreground mb-2">Ringkasan Performa</h3>
-            <p className="text-sm text-card-foreground/80">{analysis.summary}</p>
+            <h3 className="font-bold text-card-foreground mb-3 text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              Insight Kelas (AI Analysis)
+            </h3>
+            <p className="text-sm text-card-foreground leading-relaxed">
+              {analysis.paragraf_penjelasan}
+            </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-bold text-card-foreground">Rekomendasi Strategi Mengajar</h3>
-            {analysis.recommendations.map((rec: any, idx: number) => (
+            <h3 className="font-bold text-card-foreground text-lg">Materi yang Belum Dikuasai</h3>
+            {analysis.materi_belum_dikuasai?.map((item: any, idx: number) => (
               <div key={idx} className="rounded-2xl border border-border bg-gray-50/50 p-5 space-y-4">
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-danger-text">Problem</h4>
-                  <p className="text-sm text-card-foreground">{rec.problem}</p>
+                  <h4 className="text-sm font-bold text-danger-text flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {item.materi}
+                  </h4>
+                  <p className="text-sm text-card-foreground bg-white p-3 rounded-xl border border-border shadow-sm">
+                    {item.penjelasan}
+                  </p>
                 </div>
+                
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-warning-text">Evidence</h4>
-                  <p className="text-sm text-card-foreground bg-warning-subtle/30 p-2 rounded-lg border border-warning-subtle">{rec.evidence}</p>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-success-text">Recommendation</h4>
-                  <p className="text-sm text-card-foreground bg-success-subtle/30 p-2 rounded-lg border border-success-subtle">{rec.recommendation}</p>
+                  <h4 className="text-sm font-bold text-success-text mt-3">Rekomendasi Tindakan:</h4>
+                  <p className="text-sm text-card-foreground bg-success-subtle/30 p-3 rounded-xl border border-success-subtle">
+                    {item.rekomendasi}
+                  </p>
                 </div>
               </div>
             ))}
