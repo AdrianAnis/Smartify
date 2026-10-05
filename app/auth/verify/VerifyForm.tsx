@@ -159,7 +159,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 sm:w-14 sm:h-16 bg-white border border-gray-300 rounded-xl text-center text-2xl font-semibold focus:outline-none focus:border-primary transition-colors focus:ring-2 focus:ring-primary/20"
+                  className="w-12 h-14 sm:w-14 sm:h-16 bg-white border border-gray-400 rounded-xl text-center text-2xl font-semibold focus:outline-none focus:border-primary transition-colors focus:ring-2 focus:ring-primary/20"
                   required
                 />
               ))}
