@@ -12,7 +12,7 @@ export interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children, title, description, formTitle, formDescription, imageSrc }: AuthLayoutProps) {
-  const defaultImage = "https://images.unsplash.com/photo-1427504494785-319ce8372ac0?q=80&w=2070&auto=format&fit=crop";
+  const defaultImage = "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop";
 
   return (
     <div className="h-screen w-full flex bg-white overflow-hidden">
