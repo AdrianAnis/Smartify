@@ -120,14 +120,14 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
 
           {/* Right: Actions */}
           <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
-            <button className="hidden md:flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90">
-              <Zap className="h-4 w-4 fill-white" />
+            <button className="hidden md:flex items-center gap-2 rounded-full bg-white border border-border px-4 py-1.5 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
+              <Zap className="h-4 w-4 text-primary" />
               <span>Upgrade Premium</span>
             </button>
 
-            <button className="relative rounded-full p-2 text-muted-foreground transition-colors hover:bg-gray-50 hover:text-foreground">
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:bg-gray-100 hover:text-foreground">
               <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger-text ring-2 ring-white" />
+              <span className="absolute right-[6px] top-[6px] h-2 w-2 rounded-full bg-primary ring-2 ring-white" />
             </button>
 
             <div className="relative">
@@ -196,8 +196,8 @@ export function Navbar({ backHref, backLabel = "Kembali" }: NavbarProps = {}) {
               ))}
             </div>
             <div className="pt-6 border-t border-border">
-              <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3 text-sm font-bold text-white">
-                <Zap className="h-4 w-4 fill-white" />
+              <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-white border border-border px-4 py-3 text-sm font-bold text-foreground transition-colors hover:bg-gray-50 hover:border-primary/30">
+                <Zap className="h-4 w-4 text-primary" />
                 Upgrade Premium
               </button>
             </div>
