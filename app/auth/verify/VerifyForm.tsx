@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MailIcon, ArrowRight } from "lucide-react";
@@ -13,13 +13,52 @@ interface VerifyFormProps {
 export default function VerifyForm({ emailParam }: VerifyFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState(emailParam);
-  const [code, setCode] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleOtpChange = (index: number, value: string) => {
+    const val = value.replace(/\D/g, "");
+    
+    // Handle paste
+    if (val.length > 1) {
+      const chars = val.split("").slice(0, 6);
+      const pasteOtp = [...otp];
+      chars.forEach((char, i) => {
+        if (index + i < 6) pasteOtp[index + i] = char;
+      });
+      setOtp(pasteOtp);
+      const nextIndex = Math.min(index + chars.length, 5);
+      inputRefs.current[nextIndex]?.focus();
+      return;
+    }
+
+    const newOtp = [...otp];
+    newOtp[index] = val;
+    setOtp(newOtp);
+
+    // Move to next input if filled
+    if (val && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const finalCode = otp.join("");
+    if (finalCode.length < 6) {
+      setError("Masukkan 6 digit kode verifikasi");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -28,7 +67,7 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
       const response = await fetch("/api/auth/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, code: finalCode }),
       });
 
       const data = await response.json();
@@ -100,25 +139,31 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div className="space-y-2">
+          <div className="space-y-4">
             <label
-              htmlFor="code"
               className="block text-sm font-medium text-gray-700 text-center"
             >
               Kode Verifikasi
             </label>
-            <input
-              type="text"
-              id="code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
-              maxLength={6}
-              className="w-full px-4 py-4 bg-white border border-gray-300 rounded-xl text-center text-3xl tracking-[0.5em] font-semibold focus:outline-none focus:border-primary transition-colors"
-              required
-            />
+            <div className="flex justify-between gap-2 sm:gap-3">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    inputRefs.current[index] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  className="w-12 h-14 sm:w-14 sm:h-16 bg-white border border-gray-300 rounded-xl text-center text-2xl font-semibold focus:outline-none focus:border-primary transition-colors focus:ring-2 focus:ring-primary/20"
+                  required
+                />
+              ))}
+            </div>
           </div>
 
           <button
