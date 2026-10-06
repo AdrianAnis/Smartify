@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle, FileText, BarChart3, ChevronRight, Loader2, Awar
 import { ClassroomAnalysisTab } from "@/components/classroom/ClassroomAnalysisTab";
 import { QUIZ_TYPE_LABELS, DIFFICULTY_LABELS, DIFFICULTY_COLORS } from "@/lib/quiz/labels";
 import type { QuizDetail } from "@/lib/quiz/types";
+import { FinishedQuizSkeleton } from "@/components/classroom/FinishedQuizSkeleton";
 
 interface SummaryData {
   stats: {
@@ -57,11 +58,7 @@ export function FinishedQuizView({ id, kkm }: { id: string, kkm: number }) {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <FinishedQuizSkeleton />;
   }
 
   if (error || !data) {

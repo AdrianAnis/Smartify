@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { QuestionEditor } from "@/components/quiz/QuestionEditor";
+import { QuizPreviewSkeleton } from "@/components/quiz/QuizPreviewSkeleton";
 import { EDITABLE_STATUSES } from "@/lib/quiz/editable";
 import {
   DIFFICULTY_LABELS,
@@ -226,11 +227,7 @@ export default function QuizPreviewPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
-      </div>
-    );
+    return <QuizPreviewSkeleton />;
   }
 
   if (error || !kuis) {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, FileText, LayoutGrid, List } from "lucide-react";
 import { QuizCard, type QuizStatus } from "@/components/dashboard/QuizCard";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 
 interface Quiz {
   kuis_id: number;
@@ -118,9 +119,7 @@ export default function DashboardPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
-        </div>
+        <DashboardSkeleton />
       ) : (
         <>
           {filteredQuizzes.length > 0 && (

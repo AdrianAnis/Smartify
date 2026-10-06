@@ -18,6 +18,7 @@ import {
 import type { QuizDetail } from "@/lib/quiz/types";
 import { FinishedQuizView } from "./FinishedQuizView";
 import { DeleteQuizButton } from "./DeleteQuizButton";
+import { QuizDetailSkeleton } from "@/components/quiz/QuizDetailSkeleton";
 
 
 export default function QuizDetailPage() {
@@ -50,11 +51,7 @@ export default function QuizDetailPage() {
   }, [id, router]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary" />
-      </div>
-    );
+    return <QuizDetailSkeleton />;
   }
 
   if (error || !kuis) {
