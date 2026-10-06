@@ -4,6 +4,7 @@ import { getUserFromToken } from "@/lib/auth/auth-service";
 import { AUTH_COOKIE } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 import { openWaitingRoom } from "@/lib/classroom/session";
+import { listParticipants } from "@/lib/classroom/participant";
 import { WaitingRoomClient } from "@/components/classroom/WaitingRoomClient";
 
 export default async function WaitingRoomPage({
@@ -25,7 +26,7 @@ export default async function WaitingRoomPage({
 
   const { data: kuis } = await supabaseServer
     .from("kuis")
-    .select("kuis_id, guru_id, judul, status, kode_kuis")
+    .select("kuis_id, guru_id, judul, status, total_soal, durasi_menit, tingkat_kesulitan")
     .eq("kuis_id", kuisId)
     .maybeSingle();
 
@@ -61,13 +62,18 @@ export default async function WaitingRoomPage({
     joinUrl = `${appUrl}/join/${qrToken}`;
   }
 
+  const initialPeserta = await listParticipants(kuisId);
+
   return (
     <WaitingRoomClient
       kuisId={id}
       judul={kuis.judul}
-      kodeKuis={kuis.kode_kuis}
+      totalSoal={kuis.total_soal}
+      durasiMenit={kuis.durasi_menit}
+      tingkatKesulitan={kuis.tingkat_kesulitan}
       initialQrToken={qrToken}
       initialJoinUrl={joinUrl}
+      initialPeserta={initialPeserta}
     />
   );
 }
