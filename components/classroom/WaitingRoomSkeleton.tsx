@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export function WaitingRoomSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <div>
       <div className="mb-6 space-y-2">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-8 w-72" />

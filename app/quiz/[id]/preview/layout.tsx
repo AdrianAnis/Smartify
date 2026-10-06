@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/dashboard/Navbar";
+import { PageContainer } from "@/components/ui/PageContainer";
 
 export default function QuizPreviewLayout({
   children,
@@ -8,8 +9,8 @@ export default function QuizPreviewLayout({
   return (
     <div className="min-h-screen bg-background">
       <Navbar fullWidth backHref="/dashboard" />
-      <main className="pt-24 pb-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">{children}</div>
+      <main className="pt-16">
+        <PageContainer className="py-8">{children}</PageContainer>
       </main>
     </div>
   );
