@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireQuizOwner, parseId } from "@/lib/quiz/quiz-owner";
 import { kickParticipant } from "@/lib/classroom/participant";
+import { publishQuizRealtimeEventForQuiz } from "@/lib/classroom/realtime";
 
 export async function DELETE(
   request: NextRequest,
@@ -17,6 +18,7 @@ export async function DELETE(
     }
 
     await kickParticipant(parsedPesertaId, owner.kuis.kuis_id);
+    await publishQuizRealtimeEventForQuiz(owner.kuis.kuis_id, "participant_changed");
 
     return NextResponse.json({ success: true });
   } catch (error) {
