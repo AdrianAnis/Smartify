@@ -26,6 +26,7 @@ export default function JoinPage({
   const [kuisInfo, setKuisInfo] = useState<KuisInfo | null>(null);
   const [nama, setNama] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -62,6 +63,9 @@ export default function JoinPage({
       }
 
       setKuisInfo(data);
+      if (new URLSearchParams(window.location.search).get("kicked") === "1") {
+        setNotice("Kamu dikeluarkan dari ruang tunggu oleh guru. Isi nama lagi jika ingin bergabung kembali.");
+      }
     } catch {
       setError("Tidak dapat memuat informasi kuis.");
     } finally {
@@ -72,6 +76,7 @@ export default function JoinPage({
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setNotice("");
     setIsJoining(true);
 
     try {
@@ -172,6 +177,12 @@ export default function JoinPage({
               </div>
             </div>
 
+            {notice && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {notice}
+              </div>
+            )}
+
             {error && (
               <div className="rounded-xl border border-danger-border bg-danger-subtle px-4 py-3 text-sm text-danger-text">
                 {error}
@@ -181,7 +192,7 @@ export default function JoinPage({
             <button
               type="submit"
               disabled={isJoining || !nama.trim()}
-              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none"
+              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none"
             >
               {isJoining ? (
                 <span className="flex items-center justify-center gap-2">

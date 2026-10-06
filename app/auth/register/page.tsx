@@ -65,7 +65,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    alert("Daftar dengan Google akan segera hadir!");
+    window.location.assign("/api/auth/google?redirect=/dashboard");
   };
 
   return (

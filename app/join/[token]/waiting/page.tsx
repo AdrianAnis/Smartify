@@ -86,7 +86,9 @@ export default function StudentWaitingPage({
         const res = await fetch(`/api/join/${t}`, { cache: "no-store" });
         const data = await res.json();
 
-        if (data.status === "ongoing") {
+        if (data.isRegistered === false) {
+          router.replace(`/join/${t}?kicked=1`);
+        } else if (data.status === "ongoing") {
           router.replace(`/join/${t}/play`);
         } else if (data.status === "selesai" || data.status === "finished") {
           await redirectToResultWhenReady(t);

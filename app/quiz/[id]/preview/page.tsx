@@ -442,7 +442,7 @@ export default function QuizPreviewPage() {
           <Link
             href={`/quiz/${id}/waiting-room`}
             id="btn-buka-ruang-tunggu"
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-white-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40"
+            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-white transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40"
           >
             <Users className="h-5 w-5" />
             Buka Ruang Tunggu

@@ -210,37 +210,18 @@ export async function loginUser(
       throw new Error("Email atau password salah");
     }
 
+    if (!user.password_hash) {
+      throw new Error(
+        "Akun ini terdaftar dengan Google. Silakan masuk dengan tombol Google.",
+      );
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
       throw new Error("Email atau password salah");
     }
 
-    const days = rememberMe ? SESSION_DAYS_REMEMBER : SESSION_DAYS;
-
-    const token = await new SignJWT({
-      userId: user.user_id,
-      email: user.email,
-      role: user.role,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime(`${days}d`)
-      .sign(getJwtSecret());
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + days);
-
-    await supabaseServer
-      .from("user_sessions")
-      .delete()
-      .eq("user_id", user.user_id)
-      .lt("expires_at", new Date().toISOString());
-
-    await supabaseServer.from("user_sessions").insert({
-      user_id: user.user_id,
-      token,
-      expires_at: expiresAt.toISOString(),
-    });
+    const session = await createSession(user, rememberMe);
 
     return {
       user: {
@@ -250,13 +231,129 @@ export async function loginUser(
         role: user.role,
         avatar_url: user.avatar_url,
       },
-      token,
-      maxAge: days * 24 * 60 * 60,
+      ...session,
     };
   } catch (error) {
     console.error("Login error:", error);
     throw error;
   }
+}
+
+export async function createSession(
+  user: { user_id: number; email: string; role: string },
+  rememberMe: boolean = false,
+) {
+  const days = rememberMe ? SESSION_DAYS_REMEMBER : SESSION_DAYS;
+
+  const token = await new SignJWT({
+    userId: user.user_id,
+    email: user.email,
+    role: user.role,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${days}d`)
+    .sign(getJwtSecret());
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+
+  await supabaseServer
+    .from("user_sessions")
+    .delete()
+    .eq("user_id", user.user_id)
+    .lt("expires_at", new Date().toISOString());
+
+  const { error } = await supabaseServer.from("user_sessions").insert({
+    user_id: user.user_id,
+    token,
+    expires_at: expiresAt.toISOString(),
+  });
+  if (error) {
+    console.error("Create session error:", error);
+    throw new Error("Gagal membuat sesi login");
+  }
+
+  return { token, maxAge: days * 24 * 60 * 60 };
+}
+
+export interface GoogleProfile {
+  googleId: string;
+  email: string;
+  nama: string;
+  avatarUrl: string | null;
+}
+
+const GOOGLE_USER_COLUMNS = "user_id, email, nama, role, avatar_url, google_id";
+
+export async function findOrCreateGoogleUser(profile: GoogleProfile) {
+  const email = profile.email.trim().toLowerCase();
+
+  const { data: byGoogleId } = await supabaseServer
+    .from("users")
+    .select(GOOGLE_USER_COLUMNS)
+    .eq("google_id", profile.googleId)
+    .maybeSingle();
+  if (byGoogleId) return byGoogleId;
+
+  const { data: byEmail } = await supabaseServer
+    .from("users")
+    .select(GOOGLE_USER_COLUMNS)
+    .eq("email", email)
+    .maybeSingle();
+
+  if (byEmail) {
+    const { data: linked, error } = await supabaseServer
+      .from("users")
+      .update({
+        google_id: profile.googleId,
+        avatar_url: byEmail.avatar_url ?? profile.avatarUrl,
+      })
+      .eq("user_id", byEmail.user_id)
+      .select(GOOGLE_USER_COLUMNS)
+      .single();
+    if (error) {
+      console.error("Link Google account error:", error);
+      throw new Error("Gagal menghubungkan akun Google");
+    }
+    return linked;
+  }
+
+  const { data: created, error } = await supabaseServer
+    .from("users")
+    .insert({
+      email,
+      nama: profile.nama || email.split("@")[0],
+      role: "guru",
+      password_hash: null,
+      google_id: profile.googleId,
+      avatar_url: profile.avatarUrl,
+    })
+    .select(GOOGLE_USER_COLUMNS)
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      for (const [column, value] of [
+        ["google_id", profile.googleId],
+        ["email", email],
+      ]) {
+        const { data: existing } = await supabaseServer
+          .from("users")
+          .select(GOOGLE_USER_COLUMNS)
+          .eq(column, value)
+          .maybeSingle();
+        if (existing) return existing;
+      }
+    }
+    console.error("Create Google user error:", error);
+    throw new Error("Gagal membuat akun dari Google");
+  }
+
+  await supabaseServer.from("temporary_registrations").delete().eq("email", email);
+  await supabaseServer.from("email_verifications").delete().eq("email", email);
+
+  return created;
 }
 
 export async function getUserFromToken(token: string) {

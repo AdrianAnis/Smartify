@@ -23,6 +23,7 @@ export const RATE_LIMITS = {
   forgotPassword: { ip: [10, HOUR], email: [3, HOUR] },
   resetPassword: { ip: [10, 15 * MINUTE] },
   generate: { ip: [20, HOUR], email: [10, HOUR] },
+  googleLogin: { ip: [30, 15 * MINUTE] },
 } as const;
 
 export function getClientIp(request: NextRequest): string {
