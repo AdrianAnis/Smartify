@@ -9,15 +9,16 @@ import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 interface LoginFormProps {
   redirectTo: string;
+  initialError?: string;
 }
 
-export default function LoginForm({ redirectTo }: LoginFormProps) {
+export default function LoginForm({ redirectTo, initialError = "" }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +46,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
   };
 
   const handleGoogleLogin = () => {
-    alert("Login dengan Google akan segera hadir!");
+    window.location.assign(`/api/auth/google?redirect=${encodeURIComponent(redirectTo)}`);
   };
 
   return (
