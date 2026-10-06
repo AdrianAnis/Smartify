@@ -58,12 +58,22 @@ export async function getStudentSavedAnswers(pesertaId: number) {
   return data ?? [];
 }
 
+const MAX_ANSWER_LENGTH = 500;
+
 export async function saveSingleAnswer(
   pesertaId: number,
   soalId: number,
   kuisId: number,
   jawabanText: string,
 ) {
+  const { data: soal } = await supabaseServer
+    .from("soal")
+    .select("soal_id")
+    .eq("soal_id", soalId)
+    .eq("kuis_id", kuisId)
+    .maybeSingle();
+  if (!soal) throw new Error("Soal tidak ditemukan di kuis ini");
+
   await supabaseServer
     .from("peserta_kuis")
     .update({ status: "mengerjakan" })
@@ -77,7 +87,7 @@ export async function saveSingleAnswer(
         peserta_id: pesertaId,
         soal_id: soalId,
         kuis_id: kuisId,
-        jawaban_text: jawabanText,
+        jawaban_text: jawabanText.slice(0, MAX_ANSWER_LENGTH),
         saved_at: new Date().toISOString(),
       },
       { onConflict: "peserta_id,soal_id" },

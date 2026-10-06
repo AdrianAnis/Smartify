@@ -52,7 +52,7 @@ export async function GET(
 
     const { data: kuis } = await supabaseServer
       .from("kuis")
-      .select("judul, kkm, total_soal")
+      .select("judul, kkm, total_soal, status")
       .eq("kuis_id", sesi.kuis_id)
       .single();
 
@@ -76,6 +76,11 @@ export async function GET(
         isCurrentStudent: h.peserta_id === peserta.peserta_id,
       };
     });
+
+    const reviewAvailable = kuis?.status === "selesai";
+    const correctCount = Array.isArray(hasil.score_per_question)
+      ? hasil.score_per_question.filter((q: { is_benar: boolean }) => q.is_benar).length
+      : 0;
 
     const myRank = leaderboard.find((l) => l.isCurrentStudent)?.rank ?? 1;
 
@@ -146,7 +151,9 @@ export async function GET(
       rank: myRank,
       totalParticipants: leaderboard.length,
       leaderboard,
-      reviewQuestions,
+      correctCount,
+      reviewAvailable,
+      reviewQuestions: reviewAvailable ? reviewQuestions : [],
     });
   } catch (error) {
     console.error("Fetch student result error:", error);

@@ -26,6 +26,10 @@ export async function POST(
       return NextResponse.json({ error: "Peserta tidak valid." }, { status: 403 });
     }
 
+    if (sesi.kuis?.status !== "ongoing") {
+      return NextResponse.json({ error: "Kuis tidak sedang berlangsung." }, { status: 409 });
+    }
+
     const result = await gradeAndSubmitQuiz(peserta.peserta_id, sesi.kuis_id);
     await publishQuizRealtimeEvent(token, "results_changed");
 

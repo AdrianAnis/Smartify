@@ -50,6 +50,8 @@ interface ResultData {
   rank: number;
   totalParticipants: number;
   leaderboard: LeaderboardEntry[];
+  correctCount: number;
+  reviewAvailable: boolean;
   reviewQuestions: ReviewQuestion[];
 }
 
@@ -134,7 +136,7 @@ export default function StudentQuizResultPage({
   }
 
   const isLulus = result.statusKelulusan === "lulus";
-  const correctCount = result.reviewQuestions?.filter((q) => q.isBenar).length ?? 0;
+  const correctCount = result.correctCount;
   const incorrectCount = Math.max(0, result.totalSoal - correctCount);
   const displayScore = formatScore(result.score);
   const accuracy = Math.round((correctCount / (result.totalSoal || 1)) * 100);
@@ -272,16 +274,24 @@ export default function StudentQuizResultPage({
           </ul>
         </section>
 
-        <div className="hidden sm:flex sm:justify-end">
-          <button
-            type="button"
-            onClick={toggleReview}
-            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {showReview ? "Sembunyikan pembahasan" : "Lihat jawaban dan pembahasan"}
-            {showReview ? <ChevronUp className="h-5 w-5" /> : <ArrowRight className="h-5 w-5" />}
-          </button>
-        </div>
+        {!result.reviewAvailable && (
+          <p className="text-center text-sm text-gray-500 sm:text-right">
+            Pembahasan soal tersedia setelah guru mengakhiri kuis.
+          </p>
+        )}
+
+        {result.reviewAvailable && (
+          <div className="hidden sm:flex sm:justify-end">
+            <button
+              type="button"
+              onClick={toggleReview}
+              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {showReview ? "Sembunyikan pembahasan" : "Lihat jawaban dan pembahasan"}
+              {showReview ? <ChevronUp className="h-5 w-5" /> : <ArrowRight className="h-5 w-5" />}
+            </button>
+          </div>
+        )}
 
         {showReview && (
           <div ref={reviewRef} className="scroll-mt-24 space-y-4">
@@ -339,20 +349,22 @@ export default function StudentQuizResultPage({
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 bg-card/95 p-4 shadow-[0_-1px_0_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
-        <button
-          type="button"
-          onClick={toggleReview}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-white transition-colors hover:bg-primary/90"
-        >
-          {showReview ? "Sembunyikan pembahasan" : "Lihat jawaban dan pembahasan"}
-          {showReview ? (
-            <ChevronUp className="h-5 w-5 shrink-0" />
-          ) : (
-            <ArrowRight className="h-5 w-5 shrink-0" />
-          )}
-        </button>
-      </div>
+      {result.reviewAvailable && (
+        <div className="fixed inset-x-0 bottom-0 z-30 bg-card/95 p-4 shadow-[0_-1px_0_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
+          <button
+            type="button"
+            onClick={toggleReview}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-semibold text-white transition-colors hover:bg-primary/90"
+          >
+            {showReview ? "Sembunyikan pembahasan" : "Lihat jawaban dan pembahasan"}
+            {showReview ? (
+              <ChevronUp className="h-5 w-5 shrink-0" />
+            ) : (
+              <ArrowRight className="h-5 w-5 shrink-0" />
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

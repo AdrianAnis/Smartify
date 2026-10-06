@@ -13,7 +13,14 @@ export async function POST(
     const auth = await requireQuizOwner(request, id);
     if (!auth.ok) return auth.response;
 
-    const kuisId = Number(id);
+    if (auth.kuis.status !== "ongoing") {
+      return NextResponse.json(
+        { error: "Hanya kuis yang sedang berlangsung yang dapat diakhiri." },
+        { status: 409 },
+      );
+    }
+
+    const kuisId = auth.kuis.kuis_id;
 
     const { error: updateKuisError } = await supabaseServer
       .from("kuis")

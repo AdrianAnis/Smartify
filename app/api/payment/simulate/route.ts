@@ -3,13 +3,16 @@ import { getUserFromRequest } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     const user = await getUserFromRequest(request);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Set expiration 30 days from now
     const expiredAt = new Date();
     expiredAt.setDate(expiredAt.getDate() + 30);
 

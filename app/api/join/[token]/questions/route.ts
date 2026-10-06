@@ -35,6 +35,10 @@ export async function GET(
       );
     }
 
+    if (sesi.kuis?.status !== "ongoing") {
+      return NextResponse.json({ error: "Kuis belum dimulai." }, { status: 403 });
+    }
+
     const { data: kuis } = await supabaseServer
       .from("kuis")
       .select("kuis_id, judul, durasi_menit, kkm, status, waktu_mulai_sesi, total_soal")

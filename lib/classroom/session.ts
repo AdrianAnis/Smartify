@@ -4,6 +4,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const PARTICIPANT_COOKIE = "participant_token";
 
+const ANSWER_GRACE_MS = 15_000;
+
 export async function openWaitingRoom(kuisId: number) {
   await supabaseServer
     .from("sesi_kuis")
@@ -48,13 +50,21 @@ export interface SesiWithKuis {
     durasi_menit: number;
     status: string;
     kode_kuis: string;
+    waktu_mulai_sesi: string | null;
   } | null;
+}
+
+export function isQuizOpenForAnswers(kuis: SesiWithKuis["kuis"]) {
+  if (!kuis || kuis.status !== "ongoing" || !kuis.waktu_mulai_sesi) return false;
+  const deadline =
+    new Date(kuis.waktu_mulai_sesi).getTime() + kuis.durasi_menit * 60_000 + ANSWER_GRACE_MS;
+  return Date.now() <= deadline;
 }
 
 export async function getActiveSesiByToken(qrToken: string): Promise<SesiWithKuis | null> {
   const { data } = await supabaseServer
     .from("sesi_kuis")
-    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis)")
+    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis, waktu_mulai_sesi)")
     .eq("qr_token", qrToken)
     .eq("is_active", true)
     .maybeSingle();
@@ -65,7 +75,7 @@ export async function getActiveSesiByToken(qrToken: string): Promise<SesiWithKui
 export async function getSesiByToken(qrToken: string): Promise<SesiWithKuis | null> {
   const { data } = await supabaseServer
     .from("sesi_kuis")
-    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis)")
+    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis, waktu_mulai_sesi)")
     .eq("qr_token", qrToken)
     .maybeSingle();
 

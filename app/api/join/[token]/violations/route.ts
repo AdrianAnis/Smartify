@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getActiveSesiByToken, PARTICIPANT_COOKIE } from "@/lib/classroom/session";
 import { getParticipantByToken } from "@/lib/classroom/participant";
-import { recordTabViolation } from "@/lib/classroom/quiz-play";
+import { gradeAndSubmitQuiz, recordTabViolation } from "@/lib/classroom/quiz-play";
+import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
+
+const MAX_TAB_VIOLATIONS = 3;
 
 export async function POST(
   request: NextRequest,
@@ -25,9 +28,19 @@ export async function POST(
       return NextResponse.json({ error: "Peserta tidak valid." }, { status: 403 });
     }
 
-    const result = await recordTabViolation(peserta.peserta_id);
+    if (sesi.kuis?.status !== "ongoing" || peserta.status === "selesai") {
+      return NextResponse.json({ success: true, violations: peserta.tab_violations ?? 0 });
+    }
 
-    return NextResponse.json({ success: true, violations: result.violations });
+    const { violations } = await recordTabViolation(peserta.peserta_id);
+
+    if (violations >= MAX_TAB_VIOLATIONS) {
+      await gradeAndSubmitQuiz(peserta.peserta_id, sesi.kuis_id);
+      await publishQuizRealtimeEvent(token, "results_changed");
+      return NextResponse.json({ success: true, violations, autoSubmitted: true });
+    }
+
+    return NextResponse.json({ success: true, violations });
   } catch (error) {
     console.error("Record violation error:", error);
     return NextResponse.json({ error: "Gagal mencatat pelanggaran." }, { status: 500 });

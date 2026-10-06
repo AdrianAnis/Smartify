@@ -1,18 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth/auth-service';
 
-export async function POST(request: Request) {
+const PREMIUM_PRICE = 79000;
+
+export async function POST(request: NextRequest) {
   try {
-    const { amount, customerName, customerEmail, customerPhone, description } = await request.json();
+    const user = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const apiKey = process.env.MAYAR_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'MAYAR_API_KEY is not configured' }, { status: 500 });
     }
 
-    // Default ke api.mayar.club jika tidak ada di env
     const apiUrl = process.env.MAYAR_API_URL || 'https://api.mayar.club';
 
-    // Panggil API Mayar langsung menggunakan fetch
     const response = await fetch(`${apiUrl}/hl/v2/qr-codes/create`, {
       method: 'POST',
       headers: {
@@ -20,7 +24,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        amount: amount || 79000
+        amount: PREMIUM_PRICE
       })
     });
 
@@ -28,12 +32,12 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.error('Mayar API Error:', data);
-      return NextResponse.json({ error: data.messages || data.message || "Gagal membuat invoice", raw: data }, { status: response.status });
+      return NextResponse.json({ error: data.messages || data.message || "Gagal membuat invoice" }, { status: response.status });
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('API Route Error:', error.message || error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('API Route Error:', error);
+    return NextResponse.json({ error: 'Gagal membuat invoice' }, { status: 500 });
   }
 }

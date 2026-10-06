@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getActiveSesiByToken, PARTICIPANT_COOKIE } from "@/lib/classroom/session";
+import {
+  getActiveSesiByToken,
+  isQuizOpenForAnswers,
+  PARTICIPANT_COOKIE,
+} from "@/lib/classroom/session";
 import { getParticipantByToken } from "@/lib/classroom/participant";
 import { saveSingleAnswer } from "@/lib/classroom/quiz-play";
 import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
@@ -39,6 +43,13 @@ export async function POST(
       return NextResponse.json(
         { error: "Kuis sudah Anda kumpulkan." },
         { status: 400 },
+      );
+    }
+
+    if (!isQuizOpenForAnswers(sesi.kuis)) {
+      return NextResponse.json(
+        { error: "Kuis belum dimulai atau waktu pengerjaan telah habis." },
+        { status: 403 },
       );
     }
 
