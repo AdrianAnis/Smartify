@@ -10,7 +10,6 @@ import {
   Send,
   AlertTriangle,
   Grid,
-  CheckCircle2,
   X,
   Loader2,
   AlertCircle,
@@ -49,6 +48,89 @@ interface PesertaMeta {
   nama: string;
   status: string;
   tabViolations: number;
+}
+
+function QuestionListPanel({
+  questions,
+  answers,
+  currentIndex,
+  answeredCount,
+  onSelect,
+  onClose,
+}: {
+  questions: Question[];
+  answers: Record<number, string>;
+  currentIndex: number;
+  answeredCount: number;
+  onSelect: (index: number) => void;
+  onClose?: () => void;
+}) {
+  return (
+    <section
+      aria-label="Daftar Soal"
+      className="rounded-xl border border-border bg-card p-4 shadow-sm"
+    >
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h3 className="text-sm font-bold text-card-foreground">
+          Daftar Soal
+          <span className="ml-1.5 font-medium text-muted">
+            {answeredCount}/{questions.length}
+          </span>
+        </h3>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup daftar soal"
+            className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:bg-input"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+
+      <div className="grid max-h-72 grid-cols-5 gap-2 overflow-y-auto p-1">
+        {questions.map((question, index) => {
+          const isCurrent = index === currentIndex;
+          const isAnswered = Boolean(answers[question.soal_id]?.trim());
+
+          return (
+            <button
+              key={question.soal_id}
+              type="button"
+              onClick={() => onSelect(index)}
+              aria-label={`Soal ${index + 1}${isCurrent ? ", aktif" : isAnswered ? ", sudah dijawab" : ", belum dijawab"}`}
+              aria-current={isCurrent ? "step" : undefined}
+              className={`flex h-11 w-full items-center justify-center rounded-xl border text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                isCurrent
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : isAnswered
+                    ? "border-success bg-success text-white"
+                    : "border-border bg-card text-card-foreground hover:bg-input"
+              }`}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-2 border-t border-border pt-3 text-xs text-muted">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-primary bg-primary" />
+          <span>Aktif</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-success bg-success" />
+          <span>Sudah Dijawab</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-border bg-card" />
+          <span>Belum Dijawab</span>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function StudentQuizPlayPage({
@@ -305,194 +387,169 @@ export default function StudentQuizPlayPage({
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-card-foreground transition-colors hover:bg-input"
+              aria-label={`Buka daftar soal, ${answeredCount} dari ${questions.length} sudah dijawab`}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-card-foreground transition-colors hover:bg-input lg:hidden"
             >
               <Grid className="h-3.5 w-3.5 text-primary" />
-              <span>
-                {answeredCount}/{questions.length}
-              </span>
+              <span>Daftar Soal</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 p-4 pb-28 sm:p-6 sm:pb-28">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
-            <div className="flex items-center gap-2">
-              <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                Soal {currentIndex + 1} dari {questions.length}
-              </span>
-              <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                {currentSoal.topik}
-              </span>
+      <main className="mx-auto flex w-full max-w-6xl flex-1 items-start gap-6 p-4 pb-28 sm:p-6 sm:pb-28">
+        <div className="w-full max-w-3xl min-w-0 flex-1">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+              <div className="flex items-center gap-2">
+                <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  Soal {currentIndex + 1} dari {questions.length}
+                </span>
+                <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+                  {currentSoal.topik}
+                </span>
+              </div>
+              <span className="text-xs text-muted">{currentSoal.poin} Poin</span>
             </div>
-            <span className="text-xs text-muted">
-              {currentSoal.poin} Poin
-            </span>
-          </div>
 
-          <div className="mb-8">
-            <h2 className="text-base font-semibold leading-relaxed text-card-foreground whitespace-pre-line sm:text-lg">
-              {currentSoal.teks_soal}
-            </h2>
-          </div>
+            <div className="mb-8">
+              <h2 className="text-base font-semibold leading-relaxed text-card-foreground whitespace-pre-line sm:text-lg">
+                {currentSoal.teks_soal}
+              </h2>
+            </div>
 
-          {currentSoal.tipe_soal === "pilihan_ganda" ? (
-            <div className="space-y-3">
-              {currentSoal.pilihan.map((p, idx) => {
-                const isSelected = answers[currentSoal.soal_id] === p.teks_pilihan;
-                const letter = String.fromCharCode(65 + idx);
+            {currentSoal.tipe_soal === "pilihan_ganda" ? (
+              <div className="space-y-3">
+                {currentSoal.pilihan.map((p, idx) => {
+                  const isSelected = answers[currentSoal.soal_id] === p.teks_pilihan;
+                  const letter = String.fromCharCode(65 + idx);
 
-                return (
-                  <button
-                    key={p.pilihan_id}
-                    type="button"
-                    onClick={() => handleSelectAnswer(currentSoal.soal_id, p.teks_pilihan)}
-                    className={`flex w-full min-w-0 items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
-                      isSelected
-                        ? "border-primary bg-cyan-50/60 shadow-sm"
-                        : "border-border hover:bg-gray-50/50"
-                    }`}
-                  >
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+                  return (
+                    <button
+                      key={p.pilihan_id}
+                      type="button"
+                      onClick={() => handleSelectAnswer(currentSoal.soal_id, p.teks_pilihan)}
+                      className={`flex w-full min-w-0 items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
                         isSelected
-                          ? "bg-primary text-white"
-                          : "bg-input text-gray-700"
+                          ? "border-primary bg-cyan-50/60 shadow-sm"
+                          : "border-border hover:bg-gray-50/50"
                       }`}
                     >
-                      {letter}
-                    </div>
-                    <span className="min-w-0 break-words text-sm font-medium text-card-foreground">
-                      {p.teks_pilihan}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <label
-                htmlFor="text-answer"
-                className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                Tuliskan Jawaban Anda
-              </label>
-              <textarea
-                id="text-answer"
-                rows={4}
-                value={answers[currentSoal.soal_id] ?? ""}
-                onChange={(e) => handleSelectAnswer(currentSoal.soal_id, e.target.value)}
-                placeholder="Ketik jawaban singkat Anda di sini..."
-                className="w-full rounded-xl border border-border bg-input p-4 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
+                          isSelected
+                            ? "bg-primary text-white"
+                            : "bg-input text-gray-700"
+                        }`}
+                      >
+                        {letter}
+                      </div>
+                      <span className="min-w-0 break-words text-sm font-medium text-card-foreground">
+                        {p.teks_pilihan}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <label
+                  htmlFor="text-answer"
+                  className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  Tuliskan Jawaban Anda
+                </label>
+                <textarea
+                  id="text-answer"
+                  rows={4}
+                  value={answers[currentSoal.soal_id] ?? ""}
+                  onChange={(e) => handleSelectAnswer(currentSoal.soal_id, e.target.value)}
+                  placeholder="Ketik jawaban singkat Anda di sini..."
+                  className="w-full rounded-xl border border-border bg-input p-4 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            )}
+          </div>
         </div>
+
+        <aside className="sticky top-24 hidden w-64 shrink-0 lg:block">
+          <QuestionListPanel
+            questions={questions}
+            answers={answers}
+            currentIndex={currentIndex}
+            answeredCount={answeredCount}
+            onSelect={setCurrentIndex}
+          />
+        </aside>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur p-3 sm:p-4">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-            disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Sebelumnya</span>
-          </button>
-
-          <div className="flex items-center gap-2">
+      <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur sm:p-4">
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-6">
+          <div className="flex w-full max-w-3xl items-center justify-between gap-3">
             <button
               type="button"
-              onClick={() => setSubmitDialogOpen(true)}
-              className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+              disabled={currentIndex === 0}
+              className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Kumpulkan
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Sebelumnya</span>
             </button>
 
-            {isLastQuestion ? (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setSubmitDialogOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+                className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
               >
-                <span>Selesai</span>
-                <Send className="h-4 w-4" />
+                Kumpulkan
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
-              >
-                <span>Selanjutnya</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
+
+              {isLastQuestion ? (
+                <button
+                  type="button"
+                  onClick={() => setSubmitDialogOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+                >
+                  <span>Selesai</span>
+                  <Send className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))
+                  }
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+                >
+                  <span>Selanjutnya</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </footer>
 
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-base font-bold text-card-foreground">
-                Navigasi Soal ({answeredCount}/{questions.length})
-              </h3>
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                className="rounded-xl p-1.5 text-muted-foreground hover:bg-input"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-5 gap-2.5 max-h-72 overflow-y-auto p-1">
-              {questions.map((q, idx) => {
-                const isAnswered = Boolean(answers[q.soal_id]?.trim());
-                const isCurrent = idx === currentIndex;
-
-                return (
-                  <button
-                    key={q.soal_id}
-                    type="button"
-                    onClick={() => {
-                      setCurrentIndex(idx);
-                      setDrawerOpen(false);
-                    }}
-                    className={`flex h-11 w-full items-center justify-center rounded-xl text-sm font-bold transition-all ${
-                      isCurrent
-                        ? "border-2 border-primary bg-primary text-white shadow-sm"
-                        : isAnswered
-                        ? "bg-cyan-100 text-cyan-800 border border-cyan-300 font-semibold"
-                        : "bg-input text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs text-muted">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-xl bg-primary" />
-                <span>Aktif</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-xl bg-cyan-100 border border-cyan-300" />
-                <span>Dijawab</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-xl bg-input" />
-                <span>Belum</span>
-              </div>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Daftar Soal"
+            className="max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl bg-background p-3 shadow-xl sm:max-w-md sm:rounded-xl sm:p-4"
+          >
+            <QuestionListPanel
+              questions={questions}
+              answers={answers}
+              currentIndex={currentIndex}
+              answeredCount={answeredCount}
+              onSelect={(index) => {
+                setCurrentIndex(index);
+                setDrawerOpen(false);
+              }}
+              onClose={() => setDrawerOpen(false)}
+            />
           </div>
         </div>
       )}
