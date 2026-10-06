@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/dashboard/Navbar";
+import { PageContainer } from "@/components/ui/PageContainer";
 
 export default function WaitingRoomLayout({
   children,
@@ -8,7 +9,9 @@ export default function WaitingRoomLayout({
   return (
     <div className="min-h-screen bg-background">
       <Navbar fullWidth backHref="/dashboard" />
-      <main className="pt-24 pb-16">{children}</main>
+      <main className="pt-16">
+        <PageContainer className="py-8">{children}</PageContainer>
+      </main>
     </div>
   );
 }

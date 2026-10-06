@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/dashboard/Navbar";
 import { PageContainer } from "@/components/ui/PageContainer";
 
-export default function QuizPreviewLayout({
+export default function MonitorLayout({
   children,
 }: {
   children: React.ReactNode;

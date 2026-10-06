@@ -199,7 +199,7 @@ export default function GenerateQuizPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div>
       <div className="mb-8">
         <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
           Generate Quiz

@@ -3,18 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Users,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Radio,
-  StopCircle,
-  Trophy,
-  ArrowLeft,
-  Loader2,
-  ChevronRight,
-} from "lucide-react";
+import { Users, AlertTriangle, StopCircle, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -240,59 +229,55 @@ export function TeacherMonitorClient({
   }
 
   const isQuizEnded = kuis.status === "selesai";
+  const isTimeLow = !isQuizEnded && remainingSeconds !== null && remainingSeconds > 0 && remainingSeconds <= 60;
+
+  const statItems = [
+    { label: "Total peserta", value: String(stats.total), hint: null },
+    { label: "Selesai mengerjakan", value: String(stats.selesai), hint: `dari ${stats.total}` },
+    { label: "Rata-rata nilai", value: stats.avgScore, hint: null },
+    { label: "Tingkat kelulusan", value: `${stats.passRate}%`, hint: `KKM ${kuis.kkm}` },
+  ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/quiz/${kuisId}/preview`}
-            className="flex items-center justify-center rounded-xl p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Live Classroom Monitor
-              </p>
-              {isQuizEnded ? (
-                <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                  Sesi Berakhir
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-medium text-success-text">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                  Live Realtime
-                </span>
-              )}
-            </div>
-            <h1 className="mt-1 text-2xl font-bold text-card-foreground line-clamp-1">
-              {kuis.judul}
-            </h1>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Monitor kuis
+            </p>
+            {isQuizEnded && (
+              <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                Sesi berakhir
+              </span>
+            )}
           </div>
+          <h1 className="mt-1 line-clamp-1 text-2xl font-bold tracking-tight text-gray-900">
+            {kuis.judul}
+          </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-xl border-none bg-card px-4 py-2 shadow-sm">
-            <Clock className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Sisa Waktu
-              </p>
-              <p className="text-base font-bold font-mono text-card-foreground">
-                {isQuizEnded ? "00:00" : formatTime(remainingSeconds)}
-              </p>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Sisa waktu
+            </p>
+            <p
+              className={`font-mono text-3xl font-bold leading-tight tabular-nums ${
+                isTimeLow ? "text-danger" : "text-gray-900"
+              }`}
+            >
+              {isQuizEnded ? "00:00" : formatTime(remainingSeconds)}
+            </p>
           </div>
 
           {isQuizEnded ? (
             <Link
               href={`/quiz/${kuisId}/result`}
-              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90"
+              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Trophy className="h-4 w-4" />
-              Buka Laporan Hasil
+              Buka laporan hasil
             </Link>
           ) : (
             <button
@@ -302,91 +287,74 @@ export function TeacherMonitorClient({
                 setEndDialogOpen(true);
               }}
               id="btn-akhiri-kuis"
-              className="flex items-center gap-2 rounded-xl bg-danger-strong px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-danger-strong/90"
+              className="inline-flex h-12 items-center gap-2 rounded-xl bg-danger-strong px-6 text-base font-semibold text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
             >
               <StopCircle className="h-4 w-4" />
-              Akhiri Kuis
+              Akhiri kuis
             </button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted">Total Peserta</p>
-          <p className="mt-1 text-2xl font-bold text-card-foreground">{stats.total}</p>
-        </div>
-        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted">Selesai Mengerjakan</p>
-          <p className="mt-1 text-2xl font-bold text-success-text">
-            {stats.selesai} <span className="text-xs font-normal text-muted">/ {stats.total}</span>
-          </p>
-        </div>
-        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted">Rata-rata Nilai</p>
-          <p className="mt-1 text-2xl font-bold text-primary-strong">{stats.avgScore}</p>
-        </div>
-        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted">Tingkat Kelulusan</p>
-          <p className="mt-1 text-2xl font-bold text-card-foreground">
-            {stats.passRate}% <span className="text-xs font-normal text-muted">(KKM {kuis.kkm})</span>
-          </p>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border-none bg-card shadow-sm">
-        <div className="border-b border-border p-4 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              <h2 className="text-base font-semibold text-card-foreground">
-                Leaderboard & Progres Siswa
-              </h2>
-            </div>
-            <span className="text-xs text-muted">
-              Auto update secara realtime
-            </span>
+      <dl className="grid grid-cols-2 gap-y-6 rounded-xl bg-card p-6 shadow-sm sm:grid-cols-4 sm:gap-y-0">
+        {statItems.map((item, index) => (
+          <div
+            key={item.label}
+            className={`sm:px-6 ${index === 0 ? "sm:pl-0" : "sm:border-l sm:border-gray-100"}`}
+          >
+            <dt className="text-sm text-gray-500">{item.label}</dt>
+            <dd className="mt-1 flex items-baseline gap-2">
+              <span className="text-3xl font-bold tabular-nums tracking-tight text-gray-900">
+                {item.value}
+              </span>
+              {item.hint && <span className="text-sm text-gray-400">{item.hint}</span>}
+            </dd>
           </div>
+        ))}
+      </dl>
+
+      <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+        <div className="flex items-center justify-between gap-2 px-6 py-5">
+          <h2 className="text-base font-semibold text-gray-900">Progres siswa</h2>
+          <span className="text-xs text-gray-400">Diperbarui otomatis</span>
         </div>
 
         {sortedParticipants.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Users className="h-10 w-10 text-muted-foreground" />
-            <p className="mt-3 text-sm font-medium text-card-foreground">Belum ada peserta di sesi ini</p>
+          <div className="flex flex-col items-center justify-center border-t border-gray-100 py-16 text-center">
+            <Users className="h-10 w-10 text-gray-300" />
+            <p className="mt-3 text-sm font-medium text-gray-900">Belum ada peserta di sesi ini</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border-t border-gray-100">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-border bg-gray-50/50 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
                 <tr>
-                  <th className="px-6 py-3.5">Peringkat</th>
-                  <th className="px-6 py-3.5">Nama Siswa</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5">Progres Soal</th>
-                  <th className="px-6 py-3.5">Pelanggaran Tab</th>
-                  <th className="px-6 py-3.5 text-right">Nilai Akhir</th>
+                  <th className="px-6 py-3">No</th>
+                  <th className="px-6 py-3">Nama siswa</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3">Progres soal</th>
+                  <th className="px-6 py-3">Pindah tab</th>
+                  <th className="px-6 py-3 text-right">Nilai</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-gray-100">
                 {sortedParticipants.map((p, idx) => {
                   const progressPct = kuis.total_soal > 0
                     ? Math.round((p.answeredCount / kuis.total_soal) * 100)
                     : 0;
 
                   return (
-                    <tr key={p.pesertaId} className="transition-colors hover:bg-input/50">
-                      <td className="px-6 py-4 font-semibold text-card-foreground">
+                    <tr key={p.pesertaId} className="transition-colors hover:bg-gray-50">
+                      <td className="px-6 py-4">
                         {idx === 0 && p.score !== null ? (
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
                             1
                           </span>
                         ) : (
-                          <span className="text-muted">{idx + 1}</span>
+                          <span className="pl-1.5 text-gray-500">{idx + 1}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 font-medium text-card-foreground">
-                        {p.nama}
-                      </td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{p.nama}</td>
                       <td className="px-6 py-4">
                         {p.status === "selesai" ? (
                           <span className="inline-flex items-center rounded-full bg-success-subtle px-2.5 py-1 text-xs font-medium text-success-text">
@@ -403,47 +371,46 @@ export function TeacherMonitorClient({
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="w-36">
-                          <div className="flex justify-between text-xs text-muted mb-1">
-                            <span>{p.answeredCount} / {kuis.total_soal}</span>
-                            <span>{progressPct}%</span>
-                          </div>
-                          <div className="h-1.5 w-full rounded-full bg-input">
+                        <div className="flex w-44 items-center gap-3">
+                          <div className="h-1.5 flex-1 rounded-full bg-gray-100">
                             <div
                               className="h-1.5 rounded-full bg-primary transition-all duration-300"
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
+                          <span className="w-12 text-right text-xs tabular-nums text-gray-500">
+                            {p.answeredCount}/{kuis.total_soal}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         {p.tabViolations > 0 ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2.5 py-0.5 text-xs font-medium text-danger-text">
                             <AlertTriangle className="h-3 w-3" />
-                            {p.tabViolations}x pindah tab
+                            {p.tabViolations}x
                           </span>
                         ) : (
-                          <span className="text-xs text-muted">0</span>
+                          <span className="text-gray-300">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {p.score !== null ? (
                           <div className="flex items-center justify-end gap-2">
-                            <span className="text-base font-bold text-card-foreground">
-                              {p.score}
+                            <span className="text-base font-bold tabular-nums text-gray-900">
+                              {Number.isInteger(p.score) ? p.score : Number(p.score.toFixed(1))}
                             </span>
                             {p.statusKelulusan === "lulus" ? (
-                              <span className="rounded-xl bg-success-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-success-text">
+                              <span className="rounded-xl bg-success-subtle px-2 py-0.5 text-xs font-semibold text-success-text">
                                 Lulus
                               </span>
                             ) : (
-                              <span className="rounded-xl bg-danger-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-danger-text">
+                              <span className="rounded-xl bg-danger-subtle px-2 py-0.5 text-xs font-semibold text-danger-text">
                                 Remedial
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs text-muted">-</span>
+                          <span className="text-gray-300">-</span>
                         )}
                       </td>
                     </tr>
@@ -459,7 +426,7 @@ export function TeacherMonitorClient({
         open={endDialogOpen}
         title="Akhiri sesi kuis sekarang?"
         description="Semua siswa yang sedang mengerjakan kuis akan otomatis disubmit nilainya dan sesi kuis akan ditutup."
-        confirmLabel="Ya, Akhiri Kuis"
+        confirmLabel="Ya, akhiri kuis"
         loadingLabel="Mengakhiri..."
         loading={isEnding}
         error={endError}
