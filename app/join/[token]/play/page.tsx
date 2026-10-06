@@ -246,8 +246,30 @@ export default function StudentQuizPlayPage({
   useEffect(() => {
     if (!kuis?.kuisId) return;
 
+    async function syncQuizStatus() {
+      try {
+        const res = await fetch(`/api/join/${token}`, { cache: "no-store" });
+        const data = await res.json();
+        if (data.status === "selesai" || data.status === "finished") {
+          const resultRes = await fetch(`/api/join/${token}/result?ready=1`, {
+            cache: "no-store",
+          });
+          const resultData = await resultRes.json();
+          if (resultRes.ok && resultData.ready) {
+            router.replace(`/join/${token}/result`);
+          } else if (!resultRes.ok) {
+            console.error(
+              `Failed to verify quiz result before navigation: HTTP ${resultRes.status}`,
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Failed to sync active quiz status:", error);
+      }
+    }
+
     const channel = supabase
-      .channel(`play-kuis-${kuis.kuisId}`)
+      .channel(`quiz-${token}`, { config: { private: false } })
       .on(
         "postgres_changes",
         {
@@ -258,17 +280,43 @@ export default function StudentQuizPlayPage({
         },
         (payload) => {
           const newStatus = (payload.new as { status: string }).status;
-          if (newStatus === "selesai") {
-            void performSubmit();
+          if (newStatus === "selesai" || newStatus === "finished") {
+            void syncQuizStatus();
           }
         },
       )
-      .subscribe();
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "sesi_kuis",
+          filter: `kuis_id=eq.${kuis.kuisId}`,
+        },
+        (payload) => {
+          const isActive = (payload.new as { is_active: boolean }).is_active;
+          if (!isActive) void syncQuizStatus();
+        },
+      )
+      .on(
+        "broadcast",
+        { event: "quiz-updated" },
+        () => {
+          void syncQuizStatus();
+        },
+      )
+      .subscribe((status, error) => {
+        if (status === "SUBSCRIBED") {
+          void syncQuizStatus();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("Student quiz realtime subscription failed:", error ?? status);
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [kuis?.kuisId, performSubmit]);
+  }, [kuis?.kuisId, token, router]);
 
   const reportViolation = useCallback(async () => {
     if (isSubmitting || isAutoSubmittingRef.current) return;

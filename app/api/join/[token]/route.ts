@@ -3,6 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getActiveSesiByToken } from "@/lib/classroom/session";
 import { joinAsParticipant, getParticipantByToken } from "@/lib/classroom/participant";
 import { PARTICIPANT_COOKIE } from "@/lib/classroom/session";
+import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
 
 export async function GET(
   request: NextRequest,
@@ -131,6 +132,7 @@ export async function POST(
       sesi.sesi_id,
       nama,
     );
+    await publishQuizRealtimeEvent(token, "participant_changed");
 
     const response = NextResponse.json({
       pesertaId: peserta.peserta_id,

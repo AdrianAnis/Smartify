@@ -45,12 +45,14 @@ interface Props {
   kuisId: string;
   initialKuis: QuizMonitorData;
   initialParticipants: ParticipantMonitor[];
+  realtimeToken: string | null;
 }
 
 export function TeacherMonitorClient({
   kuisId,
   initialKuis,
   initialParticipants,
+  realtimeToken,
 }: Props) {
   const router = useRouter();
   const [kuis, setKuis] = useState<QuizMonitorData>(initialKuis);
@@ -59,19 +61,31 @@ export function TeacherMonitorClient({
   const [endDialogOpen, setEndDialogOpen] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
   const [endError, setEndError] = useState("");
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchLatest = useCallback(async () => {
     try {
       const res = await fetch(`/api/quiz/${kuisId}/monitor`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.kuis) setKuis(data.kuis);
-        if (data.participants) setParticipants(data.participants);
+      if (!res.ok) {
+        console.error(`Failed to refresh quiz monitor: HTTP ${res.status}`);
+        return;
       }
-    } catch {
+
+      const data = await res.json();
+      if (data.kuis) setKuis(data.kuis);
+      if (data.participants) setParticipants(data.participants);
+    } catch (error) {
+      console.error("Failed to refresh quiz monitor:", error);
     }
   }, [kuisId]);
+
+  const scheduleLatestRefresh = useCallback(() => {
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(() => {
+      refreshTimeoutRef.current = null;
+      void fetchLatest();
+    }, 150);
+  }, [fetchLatest]);
 
   useEffect(() => {
     if (!kuis.waktu_mulai_sesi || kuis.status === "selesai") {
@@ -99,7 +113,10 @@ export function TeacherMonitorClient({
   useEffect(() => {
     const kId = Number(kuisId);
     const channel = supabase
-      .channel(`live-monitor-${kId}`)
+      .channel(
+        realtimeToken ? `quiz-${realtimeToken}` : `live-monitor-${kId}`,
+        { config: { private: false } },
+      )
       .on(
         "postgres_changes",
         {
@@ -108,9 +125,7 @@ export function TeacherMonitorClient({
           table: "peserta_kuis",
           filter: `kuis_id=eq.${kId}`,
         },
-        () => {
-          void fetchLatest();
-        },
+        scheduleLatestRefresh,
       )
       .on(
         "postgres_changes",
@@ -120,9 +135,7 @@ export function TeacherMonitorClient({
           table: "jawaban_siswa",
           filter: `kuis_id=eq.${kId}`,
         },
-        () => {
-          void fetchLatest();
-        },
+        scheduleLatestRefresh,
       )
       .on(
         "postgres_changes",
@@ -132,20 +145,46 @@ export function TeacherMonitorClient({
           table: "hasil_kuis",
           filter: `kuis_id=eq.${kId}`,
         },
-        () => {
-          void fetchLatest();
-        },
+        scheduleLatestRefresh,
       )
-      .subscribe();
-
-    channelRef.current = channel;
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "kuis",
+          filter: `kuis_id=eq.${kId}`,
+        },
+        scheduleLatestRefresh,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "sesi_kuis",
+          filter: `kuis_id=eq.${kId}`,
+        },
+        scheduleLatestRefresh,
+      )
+      .on(
+        "broadcast",
+        { event: "quiz-updated" },
+        scheduleLatestRefresh,
+      )
+      .subscribe((status, error) => {
+        if (status === "SUBSCRIBED") {
+          scheduleLatestRefresh();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("Teacher monitor realtime subscription failed:", error ?? status);
+        }
+      });
 
     return () => {
-      if (channelRef.current) {
-        void supabase.removeChannel(channelRef.current);
-      }
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+      void supabase.removeChannel(channel);
     };
-  }, [kuisId, fetchLatest]);
+  }, [kuisId, realtimeToken, scheduleLatestRefresh]);
 
   async function handleEndQuiz() {
     setIsEnding(true);

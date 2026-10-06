@@ -59,15 +59,22 @@ export function WaitingRoomClient({
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState("");
   const [kickingId, setKickingId] = useState<number | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const latestFetchIdRef = useRef(0);
 
   const fetchPeserta = useCallback(async () => {
+    const fetchId = ++latestFetchIdRef.current;
     try {
       const res = await fetch(`/api/quiz/${kuisId}/participants`);
       const data = await res.json();
-      if (res.ok) setPeserta(data.peserta ?? []);
-    } catch {
-      setPeserta([]);
+      if (!res.ok) {
+        console.error(`Failed to refresh waiting-room participants: HTTP ${res.status}`);
+        return;
+      }
+      if (fetchId === latestFetchIdRef.current) {
+        setPeserta(data.peserta ?? []);
+      }
+    } catch (error) {
+      console.error("Failed to refresh waiting-room participants:", error);
     }
   }, [kuisId]);
 
@@ -77,7 +84,7 @@ export function WaitingRoomClient({
 
   useEffect(() => {
     const channel = supabase
-      .channel(`waiting-room-${room.kuisId}`)
+      .channel(`quiz-${room.qrToken}`, { config: { private: false } })
       .on(
         "postgres_changes",
         {
@@ -109,18 +116,28 @@ export function WaitingRoomClient({
           );
         },
       )
+      .on(
+        "broadcast",
+        { event: "quiz-updated" },
+        (payload) => {
+          if (payload.payload.type === "participant_changed") {
+            void fetchPeserta();
+          }
+        },
+      )
       .subscribe((status) => {
         setIsConnected(status === "SUBSCRIBED");
+        if (status === "SUBSCRIBED") {
+          void fetchPeserta();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("Waiting-room realtime subscription failed:", status);
+        }
       });
 
-    channelRef.current = channel;
-
     return () => {
-      if (channelRef.current) {
-        void supabase.removeChannel(channelRef.current);
-      }
+      void supabase.removeChannel(channel);
     };
-  }, [room.kuisId]);
+  }, [room.kuisId, room.qrToken, fetchPeserta]);
 
   async function handleStart() {
     setIsStarting(true);
@@ -143,10 +160,16 @@ export function WaitingRoomClient({
   async function handleKick(pesertaId: number) {
     setKickingId(pesertaId);
     try {
-      await fetch(`/api/quiz/${kuisId}/participants/${pesertaId}`, {
+      const res = await fetch(`/api/quiz/${kuisId}/participants/${pesertaId}`, {
         method: "DELETE",
       });
-    } catch {
+      if (!res.ok) {
+        console.error(`Failed to remove participant: HTTP ${res.status}`);
+        return;
+      }
+      setPeserta((prev) => prev.filter((p) => p.peserta_id !== pesertaId));
+    } catch (error) {
+      console.error("Failed to remove participant:", error);
     } finally {
       setKickingId(null);
     }

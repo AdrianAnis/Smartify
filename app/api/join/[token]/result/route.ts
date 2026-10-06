@@ -25,6 +25,21 @@ export async function GET(
       return NextResponse.json({ error: "Peserta tidak valid." }, { status: 403 });
     }
 
+    if (request.nextUrl.searchParams.get("ready") === "1") {
+      const { data: resultStatus, error: resultStatusError } = await supabaseServer
+        .from("hasil_kuis")
+        .select("hasil_id")
+        .eq("peserta_id", peserta.peserta_id)
+        .maybeSingle();
+
+      if (resultStatusError) {
+        console.error("Check student result readiness error:", resultStatusError);
+        return NextResponse.json({ error: "Gagal memeriksa hasil kuis." }, { status: 500 });
+      }
+
+      return NextResponse.json({ ready: Boolean(resultStatus) });
+    }
+
     const { data: hasil } = await supabaseServer
       .from("hasil_kuis")
       .select("hasil_id, score, status_kelulusan, score_per_question, grading_detail, graded_at")

@@ -14,9 +14,24 @@ export default function StudentWaitingPage({
   const router = useRouter();
   const [token, setToken] = useState("");
   const [kuisId, setKuisId] = useState<number | null>(null);
+  const [sesiId, setSesiId] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [jumlahPeserta, setJumlahPeserta] = useState(0);
   const [isReady, setIsReady] = useState(false);
+
+  async function redirectToResultWhenReady(t: string) {
+    try {
+      const res = await fetch(`/api/join/${t}/result?ready=1`, { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok && data.ready) {
+        router.replace(`/join/${t}/result`);
+      } else if (!res.ok) {
+        console.error(`Failed to verify quiz result before navigation: HTTP ${res.status}`);
+      }
+    } catch (error) {
+      console.error("Failed to verify quiz result before navigation:", error);
+    }
+  }
 
   useEffect(() => {
     params.then(({ token: t }) => {
@@ -29,22 +44,23 @@ export default function StudentWaitingPage({
     try {
       const res = await fetch(`/api/join/${t}`);
       const data = await res.json();
-      if (!res.ok) {
-        router.replace(`/join/${t}`);
-        return;
-      }
-
       if (data.status === "ongoing") {
         router.replace(`/join/${t}/play`);
         return;
       }
 
-      if (data.status === "selesai") {
-        router.replace(`/join/${t}/result`);
+      if (data.status === "selesai" || data.status === "finished") {
+        await redirectToResultWhenReady(t);
+        return;
+      }
+
+      if (!res.ok) {
+        router.replace(`/join/${t}`);
         return;
       }
 
       setKuisId(data.kuisId);
+      setSesiId(data.sesiId);
       setJumlahPeserta(data.jumlahPeserta ?? 0);
 
       const meRes = await fetch(`/api/join/${t}/me`);
@@ -64,11 +80,31 @@ export default function StudentWaitingPage({
     [router],
   );
 
+  const syncQuizStatus = useCallback(
+    async (t: string) => {
+      try {
+        const res = await fetch(`/api/join/${t}`, { cache: "no-store" });
+        const data = await res.json();
+
+        if (data.status === "ongoing") {
+          router.replace(`/join/${t}/play`);
+        } else if (data.status === "selesai" || data.status === "finished") {
+          await redirectToResultWhenReady(t);
+        } else if (res.status === 404) {
+          router.replace(`/join/${t}`);
+        }
+      } catch (error) {
+        console.error("Failed to sync waiting-room quiz status:", error);
+      }
+    },
+    [router],
+  );
+
   useEffect(() => {
-    if (!kuisId || !token) return;
+    if (!kuisId || !sesiId || !token) return;
 
     const channel = supabase
-      .channel(`kuis-status-${kuisId}`)
+      .channel(`quiz-${token}`, { config: { private: false } })
       .on(
         "postgres_changes",
         {
@@ -81,7 +117,22 @@ export default function StudentWaitingPage({
           const newStatus = (payload.new as { status: string }).status;
           if (newStatus === "ongoing") {
             handleKuisStart(token);
+          } else if (newStatus === "selesai" || newStatus === "finished") {
+            void syncQuizStatus(token);
           }
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "sesi_kuis",
+          filter: `sesi_id=eq.${sesiId}`,
+        },
+        (payload) => {
+          const isActive = (payload.new as { is_active: boolean }).is_active;
+          if (!isActive) void syncQuizStatus(token);
         },
       )
       .on(
@@ -101,12 +152,25 @@ export default function StudentWaitingPage({
           }
         },
       )
-      .subscribe();
+      .on(
+        "broadcast",
+        { event: "quiz-updated" },
+        () => {
+          void syncQuizStatus(token);
+        },
+      )
+      .subscribe((status, error) => {
+        if (status === "SUBSCRIBED") {
+          void syncQuizStatus(token);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error("Waiting-room realtime subscription failed:", error ?? status);
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [kuisId, token, handleKuisStart]);
+  }, [kuisId, sesiId, token, handleKuisStart, router, syncQuizStatus]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">

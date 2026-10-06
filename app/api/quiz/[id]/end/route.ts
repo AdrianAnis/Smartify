@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
 import { supabaseServer } from "@/lib/supabase/server";
 import { gradeAndSubmitQuiz } from "@/lib/classroom/quiz-play";
+import { publishQuizRealtimeEventForQuiz } from "@/lib/classroom/realtime";
 
 export async function POST(
   request: NextRequest,
@@ -40,6 +41,8 @@ export async function POST(
         unsubmitted.map((p) => gradeAndSubmitQuiz(p.peserta_id, kuisId)),
       );
     }
+
+    await publishQuizRealtimeEventForQuiz(kuisId, "quiz_status_changed", "selesai");
 
     return NextResponse.json({ success: true, message: "Kuis berhasil diakhiri." });
   } catch (error) {

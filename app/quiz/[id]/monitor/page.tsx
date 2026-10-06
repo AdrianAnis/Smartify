@@ -48,6 +48,17 @@ export default async function QuizMonitorPage({
     .select("peserta_id, score, status_kelulusan, graded_at")
     .eq("kuis_id", kuisId);
 
+  const { data: realtimeSession, error: realtimeSessionError } = await supabaseServer
+    .from("sesi_kuis")
+    .select("qr_token")
+    .eq("kuis_id", kuisId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (realtimeSessionError) {
+    console.error("Failed to load quiz realtime channel:", realtimeSessionError);
+  }
+
   const answerCountMap = new Map<number, number>();
   jawabanList?.forEach((j) => {
     answerCountMap.set(j.peserta_id, (answerCountMap.get(j.peserta_id) ?? 0) + 1);
@@ -81,6 +92,7 @@ export default async function QuizMonitorPage({
       kuisId={id}
       initialKuis={kuis}
       initialParticipants={initialParticipants}
+      realtimeToken={realtimeSession?.qr_token ?? null}
     />
   );
 }

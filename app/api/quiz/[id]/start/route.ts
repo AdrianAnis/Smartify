@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
 import { startSession } from "@/lib/classroom/session";
+import { publishQuizRealtimeEventForQuiz } from "@/lib/classroom/realtime";
 
 export async function POST(
   request: NextRequest,
@@ -19,6 +20,7 @@ export async function POST(
     }
 
     const result = await startSession(owner.kuis.kuis_id);
+    await publishQuizRealtimeEventForQuiz(owner.kuis.kuis_id, "quiz_status_changed", "ongoing");
 
     return NextResponse.json({ success: true, waktu_mulai_sesi: result.waktu_mulai_sesi });
   } catch (error) {

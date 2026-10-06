@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getActiveSesiByToken, PARTICIPANT_COOKIE } from "@/lib/classroom/session";
 import { getParticipantByToken } from "@/lib/classroom/participant";
 import { saveSingleAnswer } from "@/lib/classroom/quiz-play";
+import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
 
 export async function POST(
   request: NextRequest,
@@ -58,6 +59,7 @@ export async function POST(
       sesi.kuis_id,
       jawabanText,
     );
+    await publishQuizRealtimeEvent(token, "answers_changed");
 
     return NextResponse.json({ success: true, soalId, jawabanText });
   } catch (error) {

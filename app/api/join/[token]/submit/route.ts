@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getActiveSesiByToken, PARTICIPANT_COOKIE } from "@/lib/classroom/session";
 import { getParticipantByToken } from "@/lib/classroom/participant";
 import { gradeAndSubmitQuiz } from "@/lib/classroom/quiz-play";
+import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
 
 export async function POST(
   request: NextRequest,
@@ -26,6 +27,7 @@ export async function POST(
     }
 
     const result = await gradeAndSubmitQuiz(peserta.peserta_id, sesi.kuis_id);
+    await publishQuizRealtimeEvent(token, "results_changed");
 
     return NextResponse.json({
       success: true,
