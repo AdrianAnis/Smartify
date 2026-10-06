@@ -5,13 +5,13 @@
   --foreground: #1a1a1a;
   --card: #ffffff;
   --card-foreground: #1a1a1a;
-  --primary: #4ac9ff;
+  --primary: #2a9edd;
   --primary-foreground: #ffffff;
   --muted: #6b7280;
   --muted-foreground: #9ca3af;
   --border: #e5e7eb;
   --input: #f3f4f6;
-  --ring: #4ac9ff;
+  --ring: #2a9edd;
   --label: #3e484f;
   --success: #10b981;
   --success-subtle: #d1fae5;
@@ -51,9 +51,12 @@
   --color-danger-subtle: var(--danger-subtle);
   --color-danger-border: var(--danger-border);
   --color-danger-text: var(--danger-text);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 0.125rem);
-  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
   --font-sans: var(--font-plus-jakarta-sans, system-ui, -apple-system, sans-serif);
 }
 

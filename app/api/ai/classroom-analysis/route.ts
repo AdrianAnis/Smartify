@@ -1,11 +1,33 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
 
-export async function POST(req: Request) {
+// Topik dengan persentase salah <= nilai ini dianggap sudah dikuasai (setara label "Mudah")
+// sehingga tidak dimasukkan ke AI Insight.
+const MIN_ERROR_RATE = 30;
+const NO_ISSUE_SUMMARY =
+  "Seluruh materi dalam kuis ini sudah dikuasai dengan baik oleh siswa, sehingga tidak ada topik yang perlu mendapat perhatian khusus.";
+
+function sanitizeAnalysis(raw: any) {
+  const topics = Array.isArray(raw?.topics)
+    ? raw.topics.filter((t: any) => Number(t?.error_percentage) > MIN_ERROR_RATE)
+    : [];
+  if (topics.length === 0) return { summary: NO_ISSUE_SUMMARY, topics: [] };
+  if (topics.length !== raw.topics.length) {
+    return {
+      ...raw,
+      summary: `Berdasarkan hasil pengerjaan siswa, terdapat ${topics.length} materi yang menunjukkan tingkat kesalahan paling tinggi.`,
+      topics,
+    };
+  }
+  return { ...raw, topics };
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const user = await getUserFromRequest(req as any);
+    const user = await getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const apiKey = process.env.API_GEMINI_QUIZ;
@@ -19,14 +41,24 @@ export async function POST(req: Request) {
     const { kuisId } = body;
     if (!kuisId) return NextResponse.json({ error: "kuisId is required" }, { status: 400 });
 
-    const { data: kuis } = await supabaseServer
-      .from("kuis")
-      .select("guru_id, judul, kkm")
-      .eq("kuis_id", kuisId)
-      .single();
+    const owner = await requireQuizOwner(req, kuisId.toString());
+    if (!owner.ok) return owner.response;
+    const { kuis } = owner;
 
-    if (!kuis || (kuis.guru_id !== user.user_id && user.role !== "admin")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (kuis.status !== "selesai") {
+      return NextResponse.json({ 
+        success: true, 
+        pending: true,
+        message: "Kuis masih dalam pengerjaan, analisis belum dapat dilakukan." 
+      });
+    }
+
+    if (kuis.ai_insight) {
+      return NextResponse.json({
+        success: true,
+        analysis: sanitizeAnalysis(kuis.ai_insight),
+        cached: true
+      });
     }
 
     // Fetch Soal
@@ -81,86 +113,153 @@ export async function POST(req: Request) {
 
     const averageScore = totalScore / hasilList.length;
 
-    const topicAnalysis = Object.entries(topicStats).map(([topik, stat]) => ({
-      topik,
-      accuracy: Math.round((stat.correct / stat.attempts) * 100)
-    }));
+    // Hanya topik/soal yang banyak salah (> MIN_ERROR_RATE) yang layak masuk AI Insight.
+    // Topik yang mudah atau dijawab benar semua (0% salah) tidak dianalisis.
+    const topicAnalysis = Object.entries(topicStats)
+      .map(([topik, stat]) => ({
+        topik,
+        accuracy: Math.round((stat.correct / stat.attempts) * 100),
+        errorRate: 100 - Math.round((stat.correct / stat.attempts) * 100),
+      }))
+      .filter((t) => t.errorRate > MIN_ERROR_RATE)
+      .sort((a, b) => b.errorRate - a.errorRate);
 
-    const questionAnalysis = Object.entries(questionStats).map(([sId, stat]) => {
-      const soal = soalMap.get(Number(sId));
-      return {
-        urutan: soal?.urutan,
-        teks_soal: soal?.teks_soal,
-        topik: soal?.topik,
-        accuracy: Math.round((stat.correct / stat.attempts) * 100)
-      };
-    });
+    const hardTopics = new Set(topicAnalysis.map((t) => t.topik));
+
+    const questionAnalysis = Object.entries(questionStats)
+      .map(([sId, stat]) => {
+        const soal = soalMap.get(Number(sId));
+        return {
+          urutan: soal?.urutan,
+          teks_soal: soal?.teks_soal,
+          topik: soal?.topik,
+          accuracy: Math.round((stat.correct / stat.attempts) * 100),
+        };
+      })
+      .filter((q) => q.topik && hardTopics.has(q.topik) && 100 - q.accuracy > MIN_ERROR_RATE);
+
+    // Tidak ada materi yang sulit -> tidak perlu memanggil AI sama sekali.
+    if (topicAnalysis.length === 0) {
+      const emptyAnalysis = { summary: NO_ISSUE_SUMMARY, topics: [] };
+      await supabaseServer.from("kuis").update({ ai_insight: emptyAnalysis }).eq("kuis_id", kuisId);
+      return NextResponse.json({ success: true, analysis: emptyAnalysis, cached: false });
+    }
 
     const aiContext = `
 Analisis kelas untuk Kuis: ${kuis.judul}
-KKM: ${kuis.kkm}
 Jumlah Siswa Selesai: ${pesertaList.length}
-Rata-rata Skor: ${averageScore.toFixed(1)}
 
 Data Topik:
-${topicAnalysis.map(t => `- ${t.topik}: ${t.accuracy}% benar`).join("\n")}
+${topicAnalysis.map(t => `- ${t.topik}: ${t.errorRate}% siswa menjawab salah`).join("\n")}
 
-Data Soal:
-${questionAnalysis.map(q => `- Soal ${q.urutan} (${q.topik}): ${q.accuracy}% benar - "${q.teks_soal}"`).join("\n")}
+Data Kesalahan pada Soal:
+${questionAnalysis.map(q => `- Soal ${q.urutan} (${q.topik}): ${100 - q.accuracy}% siswa menjawab salah - "${q.teks_soal}"`).join("\n")}
 
 Tugas Anda:
-Buatkan "Insight dan Rekomendasi" yang mendalam bagi Guru untuk mengevaluasi pemahaman siswa secara keseluruhan.
-Anda harus:
-1. Menyusun sebuah paragraf penjelasan utuh yang merangkum performa kelas, meng-highlight kelemahan terbesar (terutama topik/soal yang tingkat akurasinya paling rendah).
-2. Membuat poin-poin spesifik mengenai materi apa saja yang belum dikuasai (contoh: akurasi di bawah kkm atau di bawah 50%).
-3. Berikan saran cara mengajarkannya kembali kepada guru.
-
-Format dalam JSON sesuai dengan schema yang diminta.
+Buatkan "Insight AI" yang mendetail, sangat praktis, dan langsung dapat dieksekusi oleh Guru. 
+Untuk bagian "why_difficult" dan "strategy", tulislah penjelasan yang lumayan panjang dan terstruktur (sekitar 2-3 kalimat per poin), bukan hanya beberapa kata singkat. Jelaskan secara spesifik letak kebingungan siswa dari konteks soalnya.
+Namun tetap pertahankan gaya bahasa yang ringkas, profesional, dan tidak berbunga-bunga (jangan AI Slop).
+Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan topik lain, dan jangan membahas materi yang sudah dikuasai siswa.
 `;
 
     const responseSchema: Schema = {
       type: Type.OBJECT,
       properties: {
-        paragraf_penjelasan: {
+        summary: {
           type: Type.STRING,
-          description: "Satu paragraf utuh yang menjelaskan kondisi kelas, pencapaian siswa secara general, serta menggarisbawahi topik-topik yang belum dikuasai secara umum."
+          description: "Satu kalimat ringkasan (contoh: 'Berdasarkan hasil pengerjaan 32 siswa, terdapat 2 materi yang menunjukkan tingkat kesalahan paling tinggi.')"
         },
-        materi_belum_dikuasai: {
+        topics: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              materi: { type: Type.STRING, description: "Nama materi/topik yang belum dikuasai" },
-              penjelasan: { type: Type.STRING, description: "Bukti dan penjelasan mengapa materi ini belum dikuasai" },
-              rekomendasi: { type: Type.STRING, description: "Rekomendasi konkret cara mengajarkan atau meninjau ulang materi ini di kelas" },
+              materi: { type: Type.STRING, description: "Nama topik/materi" },
+              error_percentage: { type: Type.INTEGER, description: "Persentase siswa yang menjawab salah (angka saja)" },
+              problematic_questions: { type: Type.STRING, description: "Soal nomor berapa saja yang paling banyak salah (contoh: 'Kesalahan paling banyak terjadi pada soal nomor 3 dan 7.')" },
+              why_difficult: { type: Type.STRING, description: "Analisis konkret dan detail (2-3 kalimat) mengapa siswa kesulitan materi ini" },
+              strategy: { type: Type.STRING, description: "Strategi praktis dan detail (2-3 kalimat) cara memperbaikinya di kelas" },
             },
-            required: ["materi", "penjelasan", "rekomendasi"]
+            required: ["materi", "error_percentage", "problematic_questions", "why_difficult", "strategy"]
           }
         }
       },
-      required: ["paragraf_penjelasan", "materi_belum_dikuasai"]
+      required: ["summary", "topics"]
     };
 
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-      contents: aiContext,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-      },
-    });
+    // Daftar model yang tersedia di API key ini (urut prioritas). Jika satu model
+    // sedang overload (503/429), coba ulang dengan backoff lalu pindah ke model berikutnya.
+    const modelCandidates = Array.from(
+      new Set(
+        [
+          process.env.GEMINI_MODEL,
+          "gemini-3.8-flash",
+          "gemini-3.7-flash",
+          "gemini-3.6-flash",
+          "gemini-3.5-flash",
+          "gemini-flash-latest",
+          "gemini-2.5-flash",
+        ].filter(Boolean) as string[],
+      ),
+    );
+
+    const isRetryable = (e: any) => {
+      const msg = String(e?.message || "");
+      return (
+        [429, 500, 502, 503, 504].includes(Number(e?.status)) ||
+        /\b(429|500|502|503|504)\b|high demand|UNAVAILABLE|overloaded|RESOURCE_EXHAUSTED/i.test(msg)
+      );
+    };
+    const isModelMissing = (e: any) =>
+      Number(e?.status) === 404 || /NOT_FOUND|no longer available|is not found/i.test(String(e?.message || ""));
+
+    let response: Awaited<ReturnType<typeof ai.models.generateContent>> | undefined;
+    let lastError: any;
+
+    outer: for (const model of modelCandidates) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          response = await ai.models.generateContent({
+            model,
+            contents: aiContext,
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: responseSchema,
+            },
+          });
+          break outer;
+        } catch (e: any) {
+          lastError = e;
+          if (isModelMissing(e)) break; // model tidak tersedia -> langsung ke model berikutnya
+          if (!isRetryable(e)) throw e;
+          console.warn(`Gemini ${model} gagal (percobaan ${attempt}/3): ${e?.message}`);
+          if (attempt < 3) await new Promise((r) => setTimeout(r, 1500 * attempt));
+        }
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Semua model Gemini sedang tidak tersedia");
+    }
 
     const aiText = response.text;
     if (!aiText) throw new Error("Gemini returned empty response");
 
-    const analysis = JSON.parse(aiText);
+    const analysis = sanitizeAnalysis(JSON.parse(aiText));
+
+    // Save insight to DB
+    await supabaseServer
+      .from("kuis")
+      .update({ ai_insight: analysis })
+      .eq("kuis_id", kuisId);
 
     return NextResponse.json({
       success: true,
       analysis,
+      cached: false
     });
   } catch (error: any) {
     console.error("Classroom Analysis error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to generate AI insight" }, { status: error.status || 500 });
   }
 }

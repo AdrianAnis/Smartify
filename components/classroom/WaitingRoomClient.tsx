@@ -189,7 +189,7 @@ export function WaitingRoomClient({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-semibold text-card-foreground">
                 Peserta Bergabung
@@ -232,7 +232,7 @@ export function WaitingRoomClient({
                       onClick={() => handleKick(p.peserta_id)}
                       disabled={kickingId === p.peserta_id}
                       aria-label={`Keluarkan ${p.nama}`}
-                      className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-strong disabled:opacity-50"
+                      className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-strong disabled:opacity-50"
                     >
                       {kickingId === p.peserta_id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -257,7 +257,7 @@ export function WaitingRoomClient({
             onClick={handleStart}
             disabled={isStarting || peserta.length === 0}
             id="btn-mulai-kuis"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 font-semibold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 font-semibold text-white-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {isStarting ? (
               <>
@@ -279,9 +279,9 @@ export function WaitingRoomClient({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
             <div className="mb-4 flex justify-center">
-              <div className="rounded-2xl border-4 border-primary/20 p-2 bg-white">
+              <div className="rounded-xl border-4 border-primary/20 p-2 bg-white">
                 <QRCodeSVG
                   value={room.joinUrl}
                   size={200}
@@ -304,7 +304,7 @@ export function WaitingRoomClient({
               type="button"
               onClick={handleCopyLink}
               id="btn-salin-link"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-none px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input"
             >
               {copied ? (
                 <>
@@ -320,7 +320,7 @@ export function WaitingRoomClient({
             </button>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="rounded-xl border-none bg-card p-4">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Tautan Join
             </p>

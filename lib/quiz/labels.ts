@@ -6,6 +6,12 @@ export const DIFFICULTY_LABELS: Record<string, string> = {
   hard: "Sulit",
 };
 
+export const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: "text-emerald-600 bg-emerald-100",
+  medium: "text-amber-600 bg-amber-100",
+  hard: "text-red-600 bg-red-100",
+};
+
 export const QUIZ_TYPE_LABELS: Record<string, string> = {
   pilihan_ganda: "Pilihan Ganda",
   isian_singkat: "Isian Singkat",

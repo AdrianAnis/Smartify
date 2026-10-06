@@ -128,7 +128,7 @@ export default function JoinPage({
           />
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
           <div className="mb-6">
             <h1 className="text-xl font-bold text-card-foreground line-clamp-2">
               {kuisInfo?.judul}
@@ -181,7 +181,7 @@ export default function JoinPage({
             <button
               type="submit"
               disabled={isJoining || !nama.trim()}
-              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none"
+              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white-primary/20 transition-all hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none"
             >
               {isJoining ? (
                 <span className="flex items-center justify-center gap-2">

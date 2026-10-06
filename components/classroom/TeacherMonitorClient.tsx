@@ -208,9 +208,9 @@ export function TeacherMonitorClient({
         <div className="flex items-center gap-3">
           <Link
             href={`/quiz/${kuisId}/preview`}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:bg-input hover:text-card-foreground"
+            className="flex items-center justify-center rounded-xl p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export function TeacherMonitorClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 shadow-sm">
+          <div className="flex items-center gap-2 rounded-xl border-none bg-card px-4 py-2 shadow-sm">
             <Clock className="h-4 w-4 text-primary" />
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -250,7 +250,7 @@ export function TeacherMonitorClient({
           {isQuizEnded ? (
             <Link
               href={`/quiz/${kuisId}/result`}
-              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90"
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90"
             >
               <Trophy className="h-4 w-4" />
               Buka Laporan Hasil
@@ -273,21 +273,21 @@ export function TeacherMonitorClient({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Total Peserta</p>
           <p className="mt-1 text-2xl font-bold text-card-foreground">{stats.total}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Selesai Mengerjakan</p>
           <p className="mt-1 text-2xl font-bold text-success-text">
             {stats.selesai} <span className="text-xs font-normal text-muted">/ {stats.total}</span>
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Rata-rata Nilai</p>
           <p className="mt-1 text-2xl font-bold text-primary-strong">{stats.avgScore}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-4 shadow-sm">
           <p className="text-xs font-medium text-muted">Tingkat Kelulusan</p>
           <p className="mt-1 text-2xl font-bold text-card-foreground">
             {stats.passRate}% <span className="text-xs font-normal text-muted">(KKM {kuis.kkm})</span>
@@ -295,7 +295,7 @@ export function TeacherMonitorClient({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-xl border-none bg-card shadow-sm">
         <div className="border-b border-border p-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -394,11 +394,11 @@ export function TeacherMonitorClient({
                               {p.score}
                             </span>
                             {p.statusKelulusan === "lulus" ? (
-                              <span className="rounded-md bg-success-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-success-text">
+                              <span className="rounded-xl bg-success-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-success-text">
                                 Lulus
                               </span>
                             ) : (
-                              <span className="rounded-md bg-danger-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-danger-text">
+                              <span className="rounded-xl bg-danger-subtle px-1.5 py-0.5 text-[10px] font-bold uppercase text-danger-text">
                                 Remedial
                               </span>
                             )}

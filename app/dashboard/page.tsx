@@ -79,11 +79,11 @@ export default function DashboardPage() {
                   placeholder="Cari kuis..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md bg-input py-3 pl-12 pr-4 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full rounded-xl bg-input py-3 pl-12 pr-4 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
 
-              <div className="flex items-center rounded-md border border-border bg-card p-1">
+              <div className="flex items-center rounded-xl border border-border bg-card p-1">
                 {(["grid", "list"] as const).map((mode) => {
                   const Icon = mode === "grid" ? LayoutGrid : List;
                   return (
@@ -92,7 +92,7 @@ export default function DashboardPage() {
                       type="button"
                       onClick={() => setViewMode(mode)}
                       aria-pressed={viewMode === mode}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors sm:flex-initial sm:px-4 ${
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:flex-initial sm:px-4 ${
                         viewMode === mode
                           ? "bg-background text-primary"
                           : "text-muted hover:text-card-foreground"
@@ -112,7 +112,7 @@ export default function DashboardPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-md border border-danger-border bg-danger-subtle px-4 py-3 text-sm text-danger-text">
+        <div className="mb-6 rounded-xl border border-danger-border bg-danger-subtle px-4 py-3 text-sm text-danger-text">
           {error}
         </div>
       )}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
           )}
 
           {searchHasNoMatch && (
-            <div className="rounded-md border border-border bg-card px-6 py-14 text-center">
+            <div className="rounded-xl border border-border bg-card px-6 py-14 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                 <Search className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
               </p>
               <Link
                 href="/generate"
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-primary/90"
               >
                 Buat kuis baru
               </Link>

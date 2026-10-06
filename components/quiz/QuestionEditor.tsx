@@ -75,7 +75,7 @@ export function QuestionEditor({
   return (
     <form
       onSubmit={handleSave}
-      className="rounded-2xl border-2 border-primary/40 bg-primary/5 p-5 sm:p-6"
+      className="rounded-xl border-2 border-primary/40 bg-primary/5 p-5 sm:p-6"
     >
       <h3 className="mb-5 text-lg font-bold text-gray-800">Edit Soal {index + 1}.</h3>
 
@@ -147,7 +147,7 @@ export function QuestionEditor({
                           ),
                         )
                       }
-                      className="min-w-0 flex-1 rounded-lg bg-input px-3 py-2 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="min-w-0 flex-1 rounded-xl bg-input px-3 py-2 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 );

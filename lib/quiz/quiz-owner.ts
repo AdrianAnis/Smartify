@@ -16,6 +16,7 @@ export interface Kuis {
   status: "draft" | "published" | "waiting" | "ongoing" | "selesai";
   kode_kuis: string;
   created_at: string;
+  ai_insight?: any;
 }
 
 type OwnerResult =
@@ -49,7 +50,7 @@ export async function requireQuizOwner(
   const { data: kuis } = await supabaseServer
     .from("kuis")
     .select(
-      "kuis_id, guru_id, judul, jenis_soal, tingkat_kesulitan, durasi_menit, kkm, total_soal, status, kode_kuis, created_at",
+      "kuis_id, guru_id, judul, jenis_soal, tingkat_kesulitan, durasi_menit, kkm, total_soal, status, kode_kuis, created_at, ai_insight",
     )
     .eq("kuis_id", quizId)
     .maybeSingle();

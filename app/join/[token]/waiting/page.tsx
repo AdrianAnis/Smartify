@@ -121,7 +121,7 @@ export default function StudentWaitingPage({
           />
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
           <div className="mb-6 flex justify-center">
             <div className="relative flex h-20 w-20 items-center justify-center">
               <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />

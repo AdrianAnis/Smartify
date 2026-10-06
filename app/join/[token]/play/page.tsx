@@ -260,7 +260,7 @@ export default function StudentQuizPlayPage({
   if (error || !kuis || questions.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <AlertCircle className="mx-auto h-12 w-12 text-danger" />
           <h1 className="mt-3 text-lg font-bold text-card-foreground">Gagal Memuat Kuis</h1>
           <p className="mt-2 text-sm text-muted">{error || "Soal tidak tersedia"}</p>
@@ -317,13 +317,13 @@ export default function StudentQuizPlayPage({
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 p-4 pb-28 sm:p-6 sm:pb-28">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
             <div className="flex items-center gap-2">
-              <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 Soal {currentIndex + 1} dari {questions.length}
               </span>
-              <span className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+              <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                 {currentSoal.topik}
               </span>
             </div>
@@ -352,7 +352,7 @@ export default function StudentQuizPlayPage({
                     className={`flex w-full min-w-0 items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
                       isSelected
                         ? "border-primary bg-cyan-50/60 shadow-sm"
-                        : "border-border hover:border-gray-300 hover:bg-gray-50/50"
+                        : "border-border hover:bg-gray-50/50"
                     }`}
                   >
                     <div
@@ -438,7 +438,7 @@ export default function StudentQuizPlayPage({
 
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-base font-bold text-card-foreground">
                 Navigasi Soal ({answeredCount}/{questions.length})
@@ -446,7 +446,7 @@ export default function StudentQuizPlayPage({
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-input"
+                className="rounded-xl p-1.5 text-muted-foreground hover:bg-input"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -481,15 +481,15 @@ export default function StudentQuizPlayPage({
 
             <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs text-muted">
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-md bg-primary" />
+                <span className="h-3 w-3 rounded-xl bg-primary" />
                 <span>Aktif</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-md bg-cyan-100 border border-cyan-300" />
+                <span className="h-3 w-3 rounded-xl bg-cyan-100 border border-cyan-300" />
                 <span>Dijawab</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-md bg-input" />
+                <span className="h-3 w-3 rounded-xl bg-input" />
                 <span>Belum</span>
               </div>
             </div>
@@ -510,7 +510,7 @@ export default function StudentQuizPlayPage({
 
       {violationAlertOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl border border-danger-border bg-card p-6 shadow-xl text-center">
+          <div className="w-full max-w-sm rounded-xl border border-danger-border bg-card p-6 shadow-xl text-center">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger-subtle text-danger">
               <AlertTriangle className="h-6 w-6" />
             </div>

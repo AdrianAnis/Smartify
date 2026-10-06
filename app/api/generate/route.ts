@@ -15,12 +15,13 @@ import {
 } from "@/lib/quiz/generate-questions";
 import { createQuizWithQuestions } from "@/lib/quiz/create-quiz";
 import {
-  FREE_MAX_GENERATES_PER_24H,
+  FREE_DAILY_MAX_QUESTIONS,
+  PREMIUM_DAILY_MAX_QUESTIONS,
   FREE_TRIAL_MAX_QUESTIONS,
   PREMIUM_MAX_QUESTIONS,
   isPremiumEffective,
 } from "@/lib/subscription/plan";
-import { countGeneratesLast24Hours } from "@/lib/subscription/quota.server";
+import { countQuestionsLast24Hours } from "@/lib/subscription/quota.server";
 
 export const maxDuration = 60;
 
@@ -96,27 +97,26 @@ export async function POST(request: NextRequest) {
 
     const premium = isPremiumEffective(user.subscription_status, user.expired_at);
 
+    const used = await countQuestionsLast24Hours(user.user_id);
+    const totalWithThisRequest = used + totalQuestions;
+
     if (!premium) {
       if (type !== "pilihan_ganda") {
         return subscriptionLimit(
           "Free Trial hanya mendukung soal pilihan ganda. Upgrade ke Premium untuk isian singkat dan campuran.",
         );
       }
-      if (totalQuestions > FREE_TRIAL_MAX_QUESTIONS) {
+      if (totalWithThisRequest > FREE_DAILY_MAX_QUESTIONS) {
         return subscriptionLimit(
-          `Free Trial dibatasi maksimal ${FREE_TRIAL_MAX_QUESTIONS} soal. Upgrade ke Premium untuk hingga ${PREMIUM_MAX_QUESTIONS} soal.`,
+          `Free Trial dibatasi akumulasi ${FREE_DAILY_MAX_QUESTIONS} nomor soal dalam 24 jam. Anda sudah membuat ${used} soal. Upgrade ke Premium untuk batas lebih besar.`
         );
       }
-      const used = await countGeneratesLast24Hours(user.user_id);
-      if (used >= FREE_MAX_GENERATES_PER_24H) {
+    } else {
+      if (totalWithThisRequest > PREMIUM_DAILY_MAX_QUESTIONS) {
         return subscriptionLimit(
-          `Free Trial dibatasi ${FREE_MAX_GENERATES_PER_24H} kali generate dalam 24 jam. Upgrade ke Premium untuk generate tanpa batas.`,
+          `Paket Premium dibatasi akumulasi maksimal ${PREMIUM_DAILY_MAX_QUESTIONS} nomor soal dalam 24 jam. Anda sudah membuat ${used} soal.`
         );
       }
-    } else if (totalQuestions > PREMIUM_MAX_QUESTIONS) {
-      return subscriptionLimit(
-        `Paket Premium mendukung maksimal ${PREMIUM_MAX_QUESTIONS} soal per kuis.`,
-      );
     }
 
     const questions = await generateQuestions({

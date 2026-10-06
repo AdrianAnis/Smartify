@@ -220,7 +220,7 @@ export default function GenerateQuizPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
               1
@@ -253,7 +253,7 @@ export default function GenerateQuizPage() {
                 onClick={() => setFile(null)}
                 disabled={loading}
                 aria-label="Hapus file"
-                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-input disabled:opacity-50"
+                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-input disabled:opacity-50"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -276,7 +276,7 @@ export default function GenerateQuizPage() {
                 selectFile(e.dataTransfer.files[0]);
               }}
               className={`flex w-full flex-col items-center rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-                isDragging ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                isDragging ? "border-primary bg-primary/5" : "border-gray-200"
               }`}
             >
               <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gray-50">
@@ -303,7 +303,7 @@ export default function GenerateQuizPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
               2
@@ -386,7 +386,7 @@ export default function GenerateQuizPage() {
                     type="button"
                     aria-pressed={difficulty === option.value}
                     onClick={() => setDifficulty(option.value)}
-                    className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                    className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                       difficulty === option.value
                         ? "bg-card text-primary shadow-sm"
                         : "text-muted hover:text-card-foreground"
@@ -438,7 +438,7 @@ export default function GenerateQuizPage() {
           <div
             role="status"
             aria-live="polite"
-            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-xl border border-border bg-card p-8 shadow-xl"
           >
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gray-100">
               <div

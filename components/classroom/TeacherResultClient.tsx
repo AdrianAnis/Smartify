@@ -155,9 +155,9 @@ export function TeacherResultClient({
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:bg-input hover:text-card-foreground"
+            className="flex items-center justify-center rounded-xl p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
@@ -177,7 +177,7 @@ export function TeacherResultClient({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/quiz/${kuisId}/preview`}
-            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input"
+            className="flex items-center gap-2 rounded-xl border-none bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input"
           >
             <Eye className="h-4 w-4 text-muted-foreground" />
             <span>Lihat Soal</span>
@@ -186,7 +186,7 @@ export function TeacherResultClient({
             type="button"
             onClick={handleDownloadWord}
             disabled={isExporting}
-            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold shadow-sm transition-all hover:bg-secondary/90 disabled:opacity-50 border border-border"
+            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold transition-all hover:bg-secondary/90 disabled:opacity-50 border-none"
           >
             <Download className="h-4 w-4" />
             <span>Naskah Soal</span>
@@ -195,7 +195,7 @@ export function TeacherResultClient({
             type="button"
             onClick={handleDownloadExcel}
             disabled={isExporting}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
             <span>{isExporting ? "Mengunduh..." : "Nilai (Excel)"}</span>
@@ -204,7 +204,7 @@ export function TeacherResultClient({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Rata-rata Nilai
           </p>
@@ -216,7 +216,7 @@ export function TeacherResultClient({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Nilai Tertinggi
           </p>
@@ -228,7 +228,7 @@ export function TeacherResultClient({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Tingkat Kelulusan
           </p>
@@ -240,7 +240,7 @@ export function TeacherResultClient({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Total Siswa
           </p>
@@ -293,7 +293,7 @@ export function TeacherResultClient({
       </div>
 
       {activeTab === "siswa" && (
-        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border-none bg-card shadow-sm overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
             <div className="relative min-w-[240px] flex-1">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -311,7 +311,7 @@ export function TeacherResultClient({
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as "all" | "lulus" | "remedial")}
-                className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-card-foreground focus:outline-none"
+                className="rounded-xl border-none bg-card px-3 py-2 text-xs font-medium text-card-foreground focus:outline-none"
               >
                 <option value="all">Semua Status</option>
                 <option value="lulus">Lulus</option>
@@ -398,7 +398,7 @@ export function TeacherResultClient({
 
       {activeTab === "topik" && (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
             <h2 className="text-base font-bold text-card-foreground mb-1">
               Tingkat Penguasaan per Topik
             </h2>
@@ -440,7 +440,7 @@ export function TeacherResultClient({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
             <h2 className="text-base font-bold text-card-foreground mb-1">
               Analisis Per Butir Soal
             </h2>
@@ -452,11 +452,11 @@ export function TeacherResultClient({
               {initialQuestionAnalysis.map((q) => (
                 <div
                   key={q.soalId}
-                  className="rounded-xl border border-border bg-gray-50/50 p-4 space-y-2"
+                  className="rounded-xl border-none bg-gray-50/50 p-4 space-y-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-md bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+                      <span className="rounded-xl bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
                         Soal {q.urutan}
                       </span>
                       <span className="text-xs font-medium text-muted">

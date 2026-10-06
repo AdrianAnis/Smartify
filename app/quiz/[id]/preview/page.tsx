@@ -82,7 +82,7 @@ function QuestionItem({
                 type="button"
                 onClick={onEdit}
                 aria-label={`Edit soal ${index + 1}`}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-input hover:text-card-foreground"
+                className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:bg-input hover:text-card-foreground"
               >
                 <Pencil className="h-4 w-4" />
               </button>
@@ -90,7 +90,7 @@ function QuestionItem({
                 type="button"
                 onClick={onDelete}
                 aria-label={`Hapus soal ${index + 1}`}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-strong"
+                className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger-strong"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -235,7 +235,7 @@ export default function QuizPreviewPage() {
 
   if (error || !kuis) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+      <div className="mx-auto max-w-lg rounded-xl border border-gray-100 bg-white p-8 text-center shadow-sm">
         <h1 className="mb-4 text-2xl font-bold text-gray-800">Kuis tidak dapat dibuka</h1>
         <p className="mb-6 text-sm text-gray-500">{error || "Kuis tidak ditemukan"}</p>
         <Link
@@ -286,7 +286,7 @@ export default function QuizPreviewPage() {
 
   return (
     <>
-      <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -305,7 +305,7 @@ export default function QuizPreviewPage() {
               <Link
                 href={`/quiz/${id}/waiting-room`}
                 id="btn-header-buka-ruang-tunggu"
-                className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90"
+                className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary/90"
               >
                 <Users className="h-4 w-4" />
                 Buka Ruang Tunggu
@@ -346,7 +346,7 @@ export default function QuizPreviewPage() {
       </div>
 
       {topics.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <h2 className="mb-1 text-lg font-bold text-gray-800">Sebaran Topik</h2>
           <p className="mb-4 text-sm text-gray-500">
             Topik ini dipakai untuk analisis kemampuan kelas setelah kuis selesai.
@@ -375,7 +375,7 @@ export default function QuizPreviewPage() {
           </div>
           <Link
             href={`/quiz/${id}/waiting-room`}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
           >
             <Users className="h-3.5 w-3.5" />
             Buka Ruang Tunggu
@@ -390,7 +390,7 @@ export default function QuizPreviewPage() {
         </div>
       )}
 
-      <div className="space-y-10 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+      <div className="space-y-10 rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
         {soal.map((s, index) =>
           editingId === s.soal_id ? (
             <QuestionEditor
@@ -445,7 +445,7 @@ export default function QuizPreviewPage() {
           <Link
             href={`/quiz/${id}/waiting-room`}
             id="btn-buka-ruang-tunggu"
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40"
+            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-white-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40"
           >
             <Users className="h-5 w-5" />
             Buka Ruang Tunggu

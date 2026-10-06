@@ -34,7 +34,7 @@ export function ConfirmDialog({
       aria-labelledby="confirm-dialog-title"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
     >
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
         <h3 id="confirm-dialog-title" className="text-lg font-semibold text-card-foreground">
           {title}
         </h3>

@@ -1,6 +1,9 @@
-export const FREE_TRIAL_MAX_QUESTIONS = 15;
+export const FREE_DAILY_MAX_QUESTIONS = 20;
+export const PREMIUM_DAILY_MAX_QUESTIONS = 200;
+
+// Used per generation limits
+export const FREE_TRIAL_MAX_QUESTIONS = 20;
 export const PREMIUM_MAX_QUESTIONS = 50;
-export const FREE_MAX_GENERATES_PER_24H = 2;
 
 export type Plan = "free" | "premium";
 

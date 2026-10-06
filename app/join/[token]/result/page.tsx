@@ -104,7 +104,7 @@ export default function StudentQuizResultPage({
   if (error || !result) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+        <div className="w-full max-w-sm rounded-xl border border-border bg-card p-8 text-center shadow-sm">
           <p className="text-sm text-muted">{error || "Hasil kuis belum ada"}</p>
           <button
             type="button"
@@ -141,7 +141,7 @@ export default function StudentQuizResultPage({
           </Link>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 text-center">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8 text-center">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
             {isLulus ? (
               <Trophy className="h-7 w-7 text-primary" />
@@ -157,7 +157,7 @@ export default function StudentQuizResultPage({
             {result.judul} • {result.nama}
           </p>
 
-          <div className="my-6 rounded-2xl border border-border bg-gray-50/70 p-6">
+          <div className="my-6 rounded-xl border border-border bg-gray-50/70 p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Nilai Akhir
             </p>
@@ -205,7 +205,7 @@ export default function StudentQuizResultPage({
           <button
             type="button"
             onClick={() => setActiveTab("ringkasan")}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+            className={`flex-1 rounded-xl py-2 text-xs font-semibold transition-all ${
               activeTab === "ringkasan"
                 ? "bg-primary text-white shadow-sm"
                 : "text-muted hover:text-card-foreground"
@@ -216,7 +216,7 @@ export default function StudentQuizResultPage({
           <button
             type="button"
             onClick={() => setActiveTab("pembahasan")}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+            className={`flex-1 rounded-xl py-2 text-xs font-semibold transition-all ${
               activeTab === "pembahasan"
                 ? "bg-primary text-white shadow-sm"
                 : "text-muted hover:text-card-foreground"
@@ -227,7 +227,7 @@ export default function StudentQuizResultPage({
           <button
             type="button"
             onClick={() => setActiveTab("leaderboard")}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+            className={`flex-1 rounded-xl py-2 text-xs font-semibold transition-all ${
               activeTab === "leaderboard"
                 ? "bg-primary text-white shadow-sm"
                 : "text-muted hover:text-card-foreground"
@@ -242,14 +242,14 @@ export default function StudentQuizResultPage({
             {result.reviewQuestions.map((q, idx) => (
               <div
                 key={q.soalId}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-3"
+                className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm text-card-foreground">
                       Soal {idx + 1}.
                     </span>
-                    <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-muted">
+                    <span className="rounded-xl bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-muted">
                       {q.topik}
                     </span>
                   </div>
@@ -303,7 +303,7 @@ export default function StudentQuizResultPage({
         )}
 
         {activeTab === "leaderboard" && (
-          <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
             <div className="p-4 border-b border-border">
               <h3 className="text-sm font-bold text-card-foreground">
                 Peringkat Kelas ({result.leaderboard.length} Peserta)
@@ -338,7 +338,7 @@ export default function StudentQuizResultPage({
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-card-foreground">{item.score}</span>
                     <span
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                      className={`rounded-xl px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                         item.statusKelulusan === "lulus"
                           ? "bg-success-subtle text-success-text"
                           : "bg-danger-subtle text-danger-text"
@@ -354,7 +354,7 @@ export default function StudentQuizResultPage({
         )}
 
         {activeTab === "ringkasan" && (
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-card-foreground">Informasi Pengerjaan</h3>
             <div className="divide-y divide-border text-xs">
               <div className="flex justify-between py-2.5">
