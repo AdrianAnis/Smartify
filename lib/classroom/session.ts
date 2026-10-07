@@ -49,7 +49,6 @@ export interface SesiWithKuis {
     total_soal: number;
     durasi_menit: number;
     status: string;
-    kode_kuis: string;
     waktu_mulai_sesi: string | null;
   } | null;
 }
@@ -64,7 +63,7 @@ export function isQuizOpenForAnswers(kuis: SesiWithKuis["kuis"]) {
 export async function getActiveSesiByToken(qrToken: string): Promise<SesiWithKuis | null> {
   const { data } = await supabaseServer
     .from("sesi_kuis")
-    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis, waktu_mulai_sesi)")
+    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, waktu_mulai_sesi)")
     .eq("qr_token", qrToken)
     .eq("is_active", true)
     .maybeSingle();
@@ -75,7 +74,7 @@ export async function getActiveSesiByToken(qrToken: string): Promise<SesiWithKui
 export async function getSesiByToken(qrToken: string): Promise<SesiWithKuis | null> {
   const { data } = await supabaseServer
     .from("sesi_kuis")
-    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, kode_kuis, waktu_mulai_sesi)")
+    .select("sesi_id, kuis_id, is_active, kuis(judul, total_soal, durasi_menit, status, waktu_mulai_sesi)")
     .eq("qr_token", qrToken)
     .maybeSingle();
 

@@ -69,7 +69,6 @@ export async function GET(
       judul: kuis.judul,
       totalSoal: kuis.total_soal,
       durasiMenit: kuis.durasi_menit,
-      kodeKuis: kuis.kode_kuis,
       status: kuis.status,
       jumlahPeserta: count ?? 0,
       isRegistered: Boolean(currentParticipant),

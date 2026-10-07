@@ -9,7 +9,6 @@ import {
   Clock,
   FileText,
   Gauge,
-  Hash,
   Layers,
   Lock,
   Pencil,
@@ -324,7 +323,7 @@ export default function QuizPreviewPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
           <InfoItem icon={FileText} label="Jumlah Soal" value={`${soal.length} soal`} />
           <InfoItem
             icon={Layers}
@@ -338,7 +337,6 @@ export default function QuizPreviewPage() {
           />
           <InfoItem icon={Clock} label="Durasi" value={`${kuis.durasi_menit} menit`} />
           <InfoItem icon={Target} label="KKM" value={String(kuis.kkm)} />
-          <InfoItem icon={Hash} label="Kode Kuis" value={kuis.kode_kuis} />
         </div>
       </div>
 

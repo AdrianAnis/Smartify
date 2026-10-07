@@ -11,7 +11,6 @@ interface KuisInfo {
   judul: string;
   totalSoal: number;
   durasiMenit: number;
-  kodeKuis: string;
   status: string;
   isRegistered?: boolean;
 }
@@ -201,13 +200,6 @@ export default function JoinPage({
             </button>
           </form>
         </div>
-
-        <p className="mt-4 text-center text-xs text-muted">
-          Kode kuis:{" "}
-          <span className="font-semibold tracking-widest text-foreground">
-            {kuisInfo?.kodeKuis}
-          </span>
-        </p>
       </div>
     </div>
   );
