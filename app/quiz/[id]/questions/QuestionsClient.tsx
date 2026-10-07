@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download, CheckCircle2, FileText } from "lucide-react";
 
@@ -32,21 +31,8 @@ interface Props {
 }
 
 export function QuestionsClient({ kuisId, judul, soalList }: Props) {
-  const [isExporting, setIsExporting] = useState(false);
-
-  async function handleDownloadWord() {
-    setIsExporting(true);
-    try {
-      window.location.href = `/api/quiz/${kuisId}/export?format=docx`;
-    } catch {
-    } finally {
-      setTimeout(() => setIsExporting(false), 1500);
-    }
-  }
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24">
-      {/* Sticky Navbar */}
       <div className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 bg-white/90 px-6 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Link
@@ -59,15 +45,14 @@ export function QuestionsClient({ kuisId, judul, soalList }: Props) {
             Detail Jawaban <span className="text-gray-400 font-normal mx-2">/</span> {judul}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleDownloadWord}
-          disabled={isExporting}
-          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+        <a
+          href={`/api/quiz/${kuisId}/export?format=docx`}
+          aria-label="Unduh soal"
+          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary/90"
         >
           <Download className="h-4 w-4" />
           <span className="hidden sm:inline">Unduh Soal</span>
-        </button>
+        </a>
       </div>
 
       <div className="mx-auto max-w-[800px] px-4 sm:px-6 mt-8 space-y-6">
@@ -77,7 +62,6 @@ export function QuestionsClient({ kuisId, judul, soalList }: Props) {
         </div>
 
         {soalList.map((soal) => {
-          // Sort options by urutan if available
           const sortedOptions = (soal.pilihan_jawaban || []).sort((a, b) => a.urutan - b.urutan);
 
           let kunciText = "";

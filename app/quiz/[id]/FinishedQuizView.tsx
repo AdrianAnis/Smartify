@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, XCircle, FileText, BarChart3, ChevronRight, Loader2, Award, ArrowDown, ArrowUp, Download } from "lucide-react";
+import { CheckCircle2, XCircle, FileText, BarChart3, ChevronRight, Award, ArrowDown, Download } from "lucide-react";
 import { ClassroomAnalysisTab } from "@/components/classroom/ClassroomAnalysisTab";
 import { QUIZ_TYPE_LABELS, DIFFICULTY_LABELS, DIFFICULTY_COLORS } from "@/lib/quiz/labels";
-import type { QuizDetail } from "@/lib/quiz/types";
 import { FinishedQuizSkeleton } from "@/components/classroom/FinishedQuizSkeleton";
 
 interface SummaryData {
@@ -33,7 +32,7 @@ interface SummaryData {
   }[];
 }
 
-export function FinishedQuizView({ id, kkm }: { id: string, kkm: number }) {
+export function FinishedQuizView({ id }: { id: string }) {
   const [data, setData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -75,10 +74,8 @@ export function FinishedQuizView({ id, kkm }: { id: string, kkm: number }) {
 
   return (
     <div className="space-y-6">
-      {/* 1. AI Insight */}
       <ClassroomAnalysisTab kuisId={id} />
 
-      {/* 2. Hasil Peserta */}
       <div className="rounded-xl bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-4">
           <div>
@@ -198,7 +195,6 @@ export function FinishedQuizView({ id, kkm }: { id: string, kkm: number }) {
         </div>
       </div>
 
-      {/* 3. Daftar Soal */}
       <div className="rounded-xl bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-4">
           <div>

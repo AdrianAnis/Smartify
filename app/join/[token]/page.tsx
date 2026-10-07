@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Users, BookOpen, Clock, AlertCircle, Loader2 } from "lucide-react";
@@ -22,7 +22,7 @@ export default function JoinPage({
   params: Promise<{ token: string }>;
 }) {
   const router = useRouter();
-  const [token, setToken] = useState("");
+  const { token } = use(params);
   const [kuisInfo, setKuisInfo] = useState<KuisInfo | null>(null);
   const [nama, setNama] = useState("");
   const [error, setError] = useState("");
@@ -31,47 +31,43 @@ export default function JoinPage({
   const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
-    params.then(({ token: t }) => {
-      setToken(t);
-      fetchKuisInfo(t);
-    });
-  }, [params]);
-
-  async function fetchKuisInfo(t: string) {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/join/${t}`);
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Tautan tidak valid.");
-        return;
-      }
-
-      if (data.isRegistered) {
-        if (data.status === "ongoing") {
-          router.replace(`/join/${t}/play`);
+    async function fetchKuisInfo(t: string) {
+      try {
+        const res = await fetch(`/api/join/${t}`);
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Tautan tidak valid.");
           return;
         }
-        if (data.status === "waiting") {
-          router.replace(`/join/${t}/waiting`);
-          return;
-        }
-        if (data.status === "selesai") {
-          router.replace(`/join/${t}/result`);
-          return;
-        }
-      }
 
-      setKuisInfo(data);
-      if (new URLSearchParams(window.location.search).get("kicked") === "1") {
-        setNotice("Kamu dikeluarkan dari ruang tunggu oleh guru. Isi nama lagi jika ingin bergabung kembali.");
+        if (data.isRegistered) {
+          if (data.status === "ongoing") {
+            router.replace(`/join/${t}/play`);
+            return;
+          }
+          if (data.status === "waiting") {
+            router.replace(`/join/${t}/waiting`);
+            return;
+          }
+          if (data.status === "selesai") {
+            router.replace(`/join/${t}/result`);
+            return;
+          }
+        }
+
+        setKuisInfo(data);
+        if (new URLSearchParams(window.location.search).get("kicked") === "1") {
+          setNotice("Kamu dikeluarkan dari ruang tunggu oleh guru. Isi nama lagi jika ingin bergabung kembali.");
+        }
+      } catch {
+        setError("Tidak dapat memuat informasi kuis.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setError("Tidak dapat memuat informasi kuis.");
-    } finally {
-      setIsLoading(false);
     }
-  }
+
+    void fetchKuisInfo(token);
+  }, [token, router]);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();

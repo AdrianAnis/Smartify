@@ -46,7 +46,6 @@ export function PremiumModal({ isOpen, onClose, currentPlan, expiredAt }: Premiu
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 p-8">
-          {/* Free Plan */}
           <div className="relative rounded-xl p-6 bg-gray-50">
             {currentPlan === "free" && (
               <div className="absolute top-0 right-6 -translate-y-1/2">
@@ -104,7 +103,6 @@ export function PremiumModal({ isOpen, onClose, currentPlan, expiredAt }: Premiu
             </button>
           </div>
 
-          {/* Premium Plan */}
           <div className="relative rounded-xl p-6 bg-primary/5">
             {currentPlan === "premium" && (
               <div className="absolute top-0 right-6 -translate-y-1/2">

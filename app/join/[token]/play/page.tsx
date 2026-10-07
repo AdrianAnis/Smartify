@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -41,13 +41,6 @@ interface QuizMeta {
   status: string;
   waktuMulaiSesi: string | null;
   totalSoal: number;
-}
-
-interface PesertaMeta {
-  pesertaId: number;
-  nama: string;
-  status: string;
-  tabViolations: number;
 }
 
 function QuestionListPanel({
@@ -139,9 +132,8 @@ export default function StudentQuizPlayPage({
   params: Promise<{ token: string }>;
 }) {
   const router = useRouter();
-  const [token, setToken] = useState("");
+  const { token } = use(params);
   const [kuis, setKuis] = useState<QuizMeta | null>(null);
-  const [peserta, setPeserta] = useState<PesertaMeta | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -154,49 +146,45 @@ export default function StudentQuizPlayPage({
   const [violationAlertOpen, setViolationAlertOpen] = useState(false);
   const [violationCount, setViolationCount] = useState(0);
   const isAutoSubmittingRef = useRef(false);
+  const lastViolationAtRef = useRef(0);
 
   useEffect(() => {
-    params.then(({ token: t }) => {
-      setToken(t);
-      loadQuiz(t);
-    });
-  }, [params]);
-
-  async function loadQuiz(t: string) {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/join/${t}/questions`);
-      const data = await res.json();
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          router.replace(`/join/${t}`);
+    async function loadQuiz(t: string) {
+      try {
+        const res = await fetch(`/api/join/${t}/questions`);
+        const data = await res.json();
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            router.replace(`/join/${t}`);
+            return;
+          }
+          setError(data.error ?? "Gagal memuat soal kuis.");
           return;
         }
-        setError(data.error ?? "Gagal memuat soal kuis.");
-        return;
+
+        if (data.peserta?.status === "selesai") {
+          router.replace(`/join/${t}/result`);
+          return;
+        }
+
+        setKuis(data.kuis);
+        setQuestions(data.questions ?? []);
+        setViolationCount(data.peserta?.tabViolations ?? 0);
+
+        const saved: Record<number, string> = {};
+        (data.savedAnswers ?? []).forEach((a: { soal_id: number; jawaban_text: string }) => {
+          saved[a.soal_id] = a.jawaban_text;
+        });
+        setAnswers(saved);
+      } catch {
+        setError("Terjadi kesalahan koneksi saat memuat kuis.");
+      } finally {
+        setIsLoading(false);
       }
-
-      if (data.peserta?.status === "selesai") {
-        router.replace(`/join/${t}/result`);
-        return;
-      }
-
-      setKuis(data.kuis);
-      setPeserta(data.peserta);
-      setQuestions(data.questions ?? []);
-      setViolationCount(data.peserta?.tabViolations ?? 0);
-
-      const saved: Record<number, string> = {};
-      (data.savedAnswers ?? []).forEach((a: { soal_id: number; jawaban_text: string }) => {
-        saved[a.soal_id] = a.jawaban_text;
-      });
-      setAnswers(saved);
-    } catch {
-      setError("Terjadi kesalahan koneksi saat memuat kuis.");
-    } finally {
-      setIsLoading(false);
     }
-  }
+
+    void loadQuiz(token);
+  }, [token, router]);
 
   const performSubmit = useCallback(async () => {
     if (isSubmitting || isAutoSubmittingRef.current) return;
@@ -320,16 +308,26 @@ export default function StudentQuizPlayPage({
 
   const reportViolation = useCallback(async () => {
     if (isSubmitting || isAutoSubmittingRef.current) return;
+    const now = Date.now();
+    if (now - lastViolationAtRef.current < 1000) return;
+    lastViolationAtRef.current = now;
+
     try {
       const res = await fetch(`/api/join/${token}/violations`, { method: "POST" });
       const data = await res.json();
+      if (data.autoSubmitted) {
+        isAutoSubmittingRef.current = true;
+        router.replace(`/join/${token}/result`);
+        return;
+      }
       if (data.violations) {
         setViolationCount(data.violations);
         setViolationAlertOpen(true);
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to report tab violation:", error);
     }
-  }, [token, isSubmitting]);
+  }, [token, isSubmitting, router]);
 
   useEffect(() => {
     function handleVisibilityChange() {
@@ -401,7 +399,6 @@ export default function StudentQuizPlayPage({
 
   const currentSoal = questions[currentIndex];
   const answeredCount = Object.keys(answers).filter((k) => answers[Number(k)]?.trim()).length;
-  const isCurrentAnswered = Boolean(answers[currentSoal.soal_id]?.trim());
   const isLastQuestion = currentIndex === questions.length - 1;
 
   return (

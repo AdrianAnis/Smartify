@@ -3,22 +3,18 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function DashboardSkeleton() {
   return (
     <div className="w-full">
-      {/* Header Skeleton */}
       <div className="mb-8">
         <Skeleton className="mb-2 h-3.5 w-24" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Skeleton className="h-8 w-56 sm:w-64" />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search Input Skeleton */}
             <Skeleton className="h-11 w-full rounded-xl sm:w-80" />
-            {/* View Mode Toggle Skeleton */}
             <Skeleton className="h-11 w-full rounded-xl sm:w-28" />
           </div>
         </div>
       </div>
 
-      {/* Grid Cards Skeleton */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div

@@ -17,11 +17,9 @@ import { createQuizWithQuestions } from "@/lib/quiz/create-quiz";
 import {
   FREE_DAILY_MAX_QUESTIONS,
   PREMIUM_DAILY_MAX_QUESTIONS,
-  FREE_TRIAL_MAX_QUESTIONS,
-  PREMIUM_MAX_QUESTIONS,
   isPremiumEffective,
 } from "@/lib/subscription/plan";
-import { countQuestionsLast24Hours } from "@/lib/subscription/quota.server";
+import { countQuestionsLast24Hours, recordGeneration } from "@/lib/subscription/quota.server";
 
 export const maxDuration = 60;
 
@@ -139,6 +137,8 @@ export async function POST(request: NextRequest) {
       file: { name: file.name, size: file.size },
       questions,
     });
+
+    await recordGeneration(user.user_id, totalQuestions);
 
     return NextResponse.json({ success: true, quizId });
   } catch (error) {

@@ -8,7 +8,7 @@ export default function QuizPreviewLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar fullWidth backHref="/dashboard" />
+      <Navbar backHref="/dashboard" />
       <main className="pt-16">
         <PageContainer className="py-8">{children}</PageContainer>
       </main>

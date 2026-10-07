@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
         nama: user.nama,
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal memverifikasi email" },
+      { status: 400 },
+    );
   }
 }

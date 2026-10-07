@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
+import type { QuestionScore } from "@/lib/classroom/quiz-play";
 import { supabaseServer } from "@/lib/supabase/server";
 import * as xlsx from "xlsx";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
@@ -30,6 +31,11 @@ function formatWaktuWIB(raw: string | null | undefined): string {
   }
 }
 
+function toCsvCell(value: string) {
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
 export async function GET(
   request: NextRequest,
   ctx: { params: Promise<{ id: string }> },
@@ -50,7 +56,6 @@ export async function GET(
     
     const safeTitle = (kuis?.judul ?? "Kuis").replace(/[^a-zA-Z0-9_-]/g, "_");
 
-    // Export DOCX (Naskah Soal)
     if (format === "docx") {
       const { data: soalList } = await supabaseServer
         .from("soal")
@@ -63,21 +68,16 @@ export async function GET(
         .select("soal_id, teks_pilihan, urutan")
         .in("soal_id", soalList?.map(s => s.soal_id) || []);
 
-      const docParams: any = {
-        sections: [{
-          properties: {},
-          children: [
-            new Paragraph({
-              text: kuis?.judul ?? "Kuis",
-              heading: HeadingLevel.HEADING_1,
-            }),
-            new Paragraph({ text: "" }), // empty line
-          ]
-        }]
-      };
+      const children: Paragraph[] = [
+        new Paragraph({
+          text: kuis?.judul ?? "Kuis",
+          heading: HeadingLevel.HEADING_1,
+        }),
+        new Paragraph({ text: "" }),
+      ];
 
       soalList?.forEach((soal) => {
-        docParams.sections[0].children.push(
+        children.push(
           new Paragraph({
             children: [
               new TextRun({ text: `${soal.urutan}. ${soal.teks_soal}`, bold: true })
@@ -89,7 +89,7 @@ export async function GET(
           const pilihan = pilihanList?.filter(p => p.soal_id === soal.soal_id).sort((a,b) => a.urutan - b.urutan) || [];
           const labels = ["A", "B", "C", "D", "E"];
           pilihan.forEach((p, index) => {
-            docParams.sections[0].children.push(
+            children.push(
               new Paragraph({
                 children: [
                   new TextRun({ text: `    ${labels[index]}. ${p.teks_pilihan}` })
@@ -99,10 +99,10 @@ export async function GET(
           });
         }
         
-        docParams.sections[0].children.push(new Paragraph({ text: "" }));
+        children.push(new Paragraph({ text: "" }));
       });
 
-      const doc = new Document(docParams);
+      const doc = new Document({ sections: [{ properties: {}, children }] });
       const buffer = await Packer.toBuffer(doc);
       const docxUint8 = new Uint8Array(buffer);
 
@@ -115,7 +115,6 @@ export async function GET(
       });
     }
 
-    // Prepare data for CSV/XLSX
     const { data: pesertaList } = await supabaseServer
       .from("peserta_kuis")
       .select("peserta_id, nama, status, tab_violations, submitted_at")
@@ -126,7 +125,7 @@ export async function GET(
       .select("peserta_id, score, status_kelulusan, graded_at, score_per_question")
       .eq("kuis_id", kuisId);
 
-    const hasilMap = new Map<number, { score: number; status_kelulusan: string; graded_at: string; score_per_question: any }>();
+    const hasilMap = new Map<number, { score: number; status_kelulusan: string; graded_at: string; score_per_question: QuestionScore[] | null }>();
     hasilList?.forEach((h) => {
       hasilMap.set(h.peserta_id, {
         score: Number(h.score),
@@ -136,18 +135,18 @@ export async function GET(
       });
     });
 
-    const rows = (pesertaList ?? []).map((p, idx) => {
+    const rows = (pesertaList ?? []).map((p) => {
       const h = hasilMap.get(p.peserta_id);
       const rawDate = p.submitted_at ?? h?.graded_at ?? null;
-      let qScores = {};
-      if (h?.score_per_question && Array.isArray(h.score_per_question)) {
-        h.score_per_question.forEach((sq: any) => {
-          (qScores as any)[`Soal_${sq.soal_id}`] = sq.score;
+      const qScores: Record<string, number> = {};
+      if (Array.isArray(h?.score_per_question)) {
+        h.score_per_question.forEach((sq) => {
+          qScores[`Soal_${sq.soal_id}`] = sq.score;
         });
       }
 
       return {
-        Peringkat: 0, // will set later after sort
+        Peringkat: 0,
         "Nama Siswa": p.nama,
         "Nilai Akhir": h ? h.score : 0,
         "Status Kelulusan": h ? h.status_kelulusan.toUpperCase() : "REMEDIAL",
@@ -176,13 +175,12 @@ export async function GET(
       });
     }
 
-    // Default CSV (Fallback to old format)
     const headers = ["Peringkat", "Nama Siswa", "Nilai Akhir", "Status Kelulusan", "KKM", "Pelanggaran Tab", "Waktu Selesai"];
     const csvLines = [
       headers.join(","),
       ...rows.map((r, idx) => [
         idx + 1,
-        `"${r["Nama Siswa"].replace(/"/g, '""')}"`,
+        toCsvCell(r["Nama Siswa"]),
         r["Nilai Akhir"],
         r["Status Kelulusan"],
         r["KKM"],

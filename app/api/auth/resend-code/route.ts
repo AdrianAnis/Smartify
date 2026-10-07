@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
       message: "Kode verifikasi baru telah dikirim ke email Anda",
       expiresIn: 15,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal mengirim ulang kode" },
+      { status: 400 },
+    );
   }
 }

@@ -1,3 +1,16 @@
+export interface ClassroomInsightTopic {
+  materi: string;
+  error_percentage: number;
+  problematic_questions: string;
+  why_difficult: string;
+  strategy: string;
+}
+
+export interface ClassroomInsight {
+  summary: string;
+  topics: ClassroomInsightTopic[];
+}
+
 export interface QuizPilihan {
   pilihan_id: number;
   teks_pilihan: string;

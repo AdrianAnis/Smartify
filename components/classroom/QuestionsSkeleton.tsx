@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function QuestionsSkeleton() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24">
-      {/* Sticky Navbar */}
       <div className="sticky top-0 z-50 flex h-16 items-center justify-between gap-4 bg-white/90 px-6 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Skeleton className="h-9 w-9 rounded-xl" />

@@ -1,18 +1,15 @@
 import Image from "next/image";
 
 interface GoogleLoginButtonProps {
+  href: string;
   text?: string;
-  onClick?: () => void;
-  disabled?: boolean;
 }
 
-export function GoogleLoginButton({ text = "Lanjutkan dengan Google", onClick, disabled }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ href, text = "Lanjutkan dengan Google" }: GoogleLoginButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-border text-card-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+    <a
+      href={href}
+      className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white border border-border text-card-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors"
     >
       <Image
         src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -21,6 +18,6 @@ export function GoogleLoginButton({ text = "Lanjutkan dengan Google", onClick, d
         height={20}
       />
       {text}
-    </button>
+    </a>
   );
 }

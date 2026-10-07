@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Download,
   ArrowLeft,
-  Trophy,
   Users,
   CheckCircle2,
   XCircle,
@@ -13,10 +12,7 @@ import {
   BarChart3,
   Search,
   Filter,
-  Layers,
-  HelpCircle,
   Eye,
-  Calendar,
   Sparkles,
 } from "lucide-react";
 
@@ -118,7 +114,6 @@ export function TeacherResultClient({
   const [activeTab, setActiveTab] = useState<"siswa" | "topik" | "ai">("siswa");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "lulus" | "remedial">("all");
-  const [isExporting, setIsExporting] = useState(false);
 
   const filteredStudents = useMemo(() => {
     return initialStudents.filter((s) => {
@@ -129,25 +124,6 @@ export function TeacherResultClient({
     });
   }, [initialStudents, searchQuery, filterStatus]);
 
-  async function handleDownloadExcel() {
-    setIsExporting(true);
-    try {
-      window.location.href = `/api/quiz/${kuisId}/export?format=xlsx`;
-    } catch {
-    } finally {
-      setTimeout(() => setIsExporting(false), 1500);
-    }
-  }
-
-  async function handleDownloadWord() {
-    setIsExporting(true);
-    try {
-      window.location.href = `/api/quiz/${kuisId}/export?format=docx`;
-    } catch {
-    } finally {
-      setTimeout(() => setIsExporting(false), 1500);
-    }
-  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 pb-20">
@@ -182,24 +158,20 @@ export function TeacherResultClient({
             <Eye className="h-4 w-4 text-muted-foreground" />
             <span>Lihat Soal</span>
           </Link>
-          <button
-            type="button"
-            onClick={handleDownloadWord}
-            disabled={isExporting}
-            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold transition-all hover:bg-secondary/90 disabled:opacity-50 border-none"
+          <a
+            href={`/api/quiz/${kuisId}/export?format=docx`}
+            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold transition-all hover:bg-secondary/90"
           >
             <Download className="h-4 w-4" />
             <span>Naskah Soal</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleDownloadExcel}
-            disabled={isExporting}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+          </a>
+          <a
+            href={`/api/quiz/${kuisId}/export?format=xlsx`}
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90"
           >
             <Download className="h-4 w-4" />
-            <span>{isExporting ? "Mengunduh..." : "Nilai (Excel)"}</span>
-          </button>
+            <span>Nilai (Excel)</span>
+          </a>
         </div>
       </div>
 

@@ -16,7 +16,7 @@ export interface Kuis {
   status: "draft" | "published" | "waiting" | "ongoing" | "selesai";
   kode_kuis: string;
   created_at: string;
-  ai_insight?: any;
+  ai_insight?: unknown;
 }
 
 type OwnerResult =

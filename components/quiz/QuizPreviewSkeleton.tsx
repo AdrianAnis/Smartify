@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function QuizPreviewSkeleton() {
   return (
     <div className="w-full space-y-6">
-      {/* Header Info Card Skeleton */}
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
@@ -21,7 +20,6 @@ export function QuizPreviewSkeleton() {
           </div>
         </div>
 
-        {/* 6 Info Boxes */}
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -38,7 +36,6 @@ export function QuizPreviewSkeleton() {
         </div>
       </div>
 
-      {/* Topics Distribution Card */}
       <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <Skeleton className="mb-2 h-5 w-32" />
         <Skeleton className="mb-4 h-4 w-72" />
@@ -49,7 +46,6 @@ export function QuizPreviewSkeleton() {
         </div>
       </div>
 
-      {/* Question Items List */}
       <div className="space-y-10 rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
@@ -66,14 +62,12 @@ export function QuizPreviewSkeleton() {
               </div>
             </div>
 
-            {/* Question Text */}
             <div className="mb-6 space-y-2">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
               <Skeleton className="h-4 w-2/3" />
             </div>
 
-            {/* 4 Choices */}
             <div className="mb-6 space-y-3">
               {Array.from({ length: 4 }).map((_, optIdx) => (
                 <div
@@ -86,7 +80,6 @@ export function QuizPreviewSkeleton() {
               ))}
             </div>
 
-            {/* Answer Explanation */}
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
               <Skeleton className="mb-2 h-4 w-28" />
               <Skeleton className="h-3.5 w-full" />

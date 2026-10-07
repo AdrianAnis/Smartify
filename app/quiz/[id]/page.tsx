@@ -160,7 +160,7 @@ export default function QuizDetailPage() {
   if (error || !kuis) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar fullWidth backHref="/dashboard" />
+        <Navbar backHref="/dashboard" />
         <div className="mx-auto mt-32 max-w-lg rounded-xl bg-white p-8 text-center shadow-sm">
           <h1 className="mb-2 text-xl font-bold text-gray-900">Kuis tidak dapat dibuka</h1>
           <p className="mb-6 text-sm text-gray-500">{error || "Kuis tidak ditemukan"}</p>
@@ -198,7 +198,7 @@ export default function QuizDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar fullWidth backHref="/dashboard" />
+      <Navbar backHref="/dashboard" />
 
       <main className="pt-16">
         <PageContainer className="py-8">
@@ -248,7 +248,7 @@ export default function QuizDetailPage() {
                 )}
               </section>
 
-              {isFinished && <FinishedQuizView id={id} kkm={kuis.kkm} />}
+              {isFinished && <FinishedQuizView id={id} />}
             </div>
 
             <aside className="space-y-3 self-start rounded-xl bg-card p-3 shadow-sm">

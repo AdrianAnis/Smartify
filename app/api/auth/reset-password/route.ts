@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
       message:
         "Password berhasil diubah. Silakan masuk dengan password baru Anda.",
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { error: error.message || "Gagal mengatur ulang password" },
+      { error: error instanceof Error ? error.message : "Gagal mengatur ulang password" },
       { status: 400 },
     );
   }

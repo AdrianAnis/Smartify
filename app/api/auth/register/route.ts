@@ -54,7 +54,10 @@ export async function POST(request: NextRequest) {
       email: email,
       expiresIn: 15,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal mendaftar" },
+      { status: 400 },
+    );
   }
 }

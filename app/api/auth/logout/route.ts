@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
     response.cookies.delete(AUTH_COOKIE);
 
     return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal keluar" },
+      { status: 500 },
+    );
   }
 }

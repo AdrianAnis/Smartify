@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export function FinishedQuizSkeleton() {
   return (
     <div className="space-y-6">
-      {/* 1. AI Insight Card Skeleton */}
       <div className="rounded-xl bg-white p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -15,7 +14,6 @@ export function FinishedQuizSkeleton() {
         <Skeleton className="h-24 w-full rounded-xl" />
       </div>
 
-      {/* 2. Hasil Peserta Skeleton */}
       <div className="rounded-xl bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-4">
           <div className="space-y-2">
@@ -26,7 +24,6 @@ export function FinishedQuizSkeleton() {
         </div>
 
         <div className="p-6">
-          {/* 5 Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
@@ -39,14 +36,12 @@ export function FinishedQuizSkeleton() {
             ))}
           </div>
 
-          {/* Tabs */}
           <div className="flex gap-4 mb-4 pb-1">
             <Skeleton className="h-8 w-40 rounded-xl" />
             <Skeleton className="h-8 w-36 rounded-xl" />
             <Skeleton className="h-8 w-44 rounded-xl" />
           </div>
 
-          {/* Table */}
           <div className="space-y-3">
             <Skeleton className="h-10 w-full rounded-xl" />
             {Array.from({ length: 5 }).map((_, i) => (
@@ -60,7 +55,6 @@ export function FinishedQuizSkeleton() {
         </div>
       </div>
 
-      {/* 3. Daftar Soal Skeleton */}
       <div className="rounded-xl bg-white shadow-sm overflow-hidden p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-2">

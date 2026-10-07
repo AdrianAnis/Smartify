@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Loader2, AlertCircle } from "lucide-react";
+import type { ClassroomInsight } from "@/lib/quiz/types";
 
 export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
-  const [analysis, setAnalysis] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<ClassroomInsight | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,14 +19,14 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
         const data = await res.json();
         
         if (data.pending) {
-          setAnalysis({ pending: true, message: data.message });
+          setPendingMessage(data.message);
           return;
         }
 
         if (!res.ok) throw new Error(data.error || "Gagal membuat analisis");
         setAnalysis(data.analysis);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal membuat analisis");
       } finally {
         setLoading(false);
       }
@@ -52,16 +54,16 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
           </div>
         )}
 
-        {analysis?.pending && !loading && (
+        {pendingMessage && !loading && (
           <div className="text-center py-8">
             <h3 className="text-gray-900 font-bold mb-2">Belum Ada Analisis</h3>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
-              {analysis.message}
+              {pendingMessage}
             </p>
           </div>
         )}
 
-        {!analysis && !error && !loading && (
+        {!analysis && !pendingMessage && !error && !loading && (
           <div className="text-center py-8">
             <h3 className="text-gray-900 font-bold mb-2">Belum Ada Analisis</h3>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
@@ -77,17 +79,17 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
           </div>
         )}
 
-        {analysis && !analysis.pending && (
+        {analysis && (
           <div className="space-y-8 animate-in fade-in duration-500">
             <div>
               <h3 className="font-bold text-gray-900 text-base mb-1">
-                {analysis.topics?.length > 0 ? "Materi yang Perlu Mendapat Perhatian" : "Pemahaman Siswa Sudah Baik"}
+                {analysis.topics.length > 0 ? "Materi yang Perlu Mendapat Perhatian" : "Pemahaman Siswa Sudah Baik"}
               </h3>
               <p className="text-sm text-gray-500">{analysis.summary}</p>
             </div>
 
             <div className="space-y-8">
-              {analysis.topics?.map((item: any, idx: number) => (
+              {analysis.topics.map((item, idx) => (
                 <div key={idx} className="space-y-4 pt-6 first:border-0 first:pt-0">
                   <div>
                     <h4 className="font-bold text-gray-900 text-lg">

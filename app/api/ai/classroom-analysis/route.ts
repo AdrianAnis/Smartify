@@ -3,26 +3,34 @@ import { getUserFromRequest } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
+import type { QuestionScore } from "@/lib/classroom/quiz-play";
+import type { ClassroomInsight } from "@/lib/quiz/types";
 
-// Topik dengan persentase salah <= nilai ini dianggap sudah dikuasai (setara label "Mudah")
-// sehingga tidak dimasukkan ke AI Insight.
 const MIN_ERROR_RATE = 30;
 const NO_ISSUE_SUMMARY =
   "Seluruh materi dalam kuis ini sudah dikuasai dengan baik oleh siswa, sehingga tidak ada topik yang perlu mendapat perhatian khusus.";
 
-function sanitizeAnalysis(raw: any) {
-  const topics = Array.isArray(raw?.topics)
-    ? raw.topics.filter((t: any) => Number(t?.error_percentage) > MIN_ERROR_RATE)
-    : [];
+interface GeminiError {
+  status?: number;
+  message?: string;
+}
+
+function asGeminiError(error: unknown): GeminiError {
+  return typeof error === "object" && error !== null ? (error as GeminiError) : {};
+}
+
+function sanitizeAnalysis(raw: unknown): ClassroomInsight {
+  const insight = (raw ?? {}) as Partial<ClassroomInsight>;
+  const allTopics = Array.isArray(insight.topics) ? insight.topics : [];
+  const topics = allTopics.filter((t) => Number(t?.error_percentage) > MIN_ERROR_RATE);
   if (topics.length === 0) return { summary: NO_ISSUE_SUMMARY, topics: [] };
-  if (topics.length !== raw.topics.length) {
+  if (topics.length !== allTopics.length) {
     return {
-      ...raw,
       summary: `Berdasarkan hasil pengerjaan siswa, terdapat ${topics.length} materi yang menunjukkan tingkat kesalahan paling tinggi.`,
       topics,
     };
   }
-  return { ...raw, topics };
+  return { summary: insight.summary ?? "", topics };
 }
 
 export async function POST(req: NextRequest) {
@@ -61,13 +69,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Fetch Soal
     const { data: soalList } = await supabaseServer
       .from("soal")
       .select("soal_id, urutan, teks_soal, topik")
       .eq("kuis_id", kuisId);
 
-    // Fetch Participants and Results
     const { data: pesertaList } = await supabaseServer
       .from("peserta_kuis")
       .select("peserta_id, nama, status")
@@ -85,14 +91,12 @@ export async function POST(req: NextRequest) {
 
     const soalMap = new Map(soalList.map((s) => [s.soal_id, s]));
     
-    let totalScore = 0;
     const topicStats: Record<string, { attempts: number; correct: number }> = {};
     const questionStats: Record<number, { attempts: number; correct: number }> = {};
 
     hasilList.forEach((hasil) => {
-      totalScore += hasil.score;
       if (Array.isArray(hasil.score_per_question)) {
-        hasil.score_per_question.forEach((sq: any) => {
+        hasil.score_per_question.forEach((sq: QuestionScore) => {
           const sId = sq.soal_id;
           const soal = soalMap.get(sId);
           if (!soal) return;
@@ -111,10 +115,6 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const averageScore = totalScore / hasilList.length;
-
-    // Hanya topik/soal yang banyak salah (> MIN_ERROR_RATE) yang layak masuk AI Insight.
-    // Topik yang mudah atau dijawab benar semua (0% salah) tidak dianalisis.
     const topicAnalysis = Object.entries(topicStats)
       .map(([topik, stat]) => ({
         topik,
@@ -138,7 +138,6 @@ export async function POST(req: NextRequest) {
       })
       .filter((q) => q.topik && hardTopics.has(q.topik) && 100 - q.accuracy > MIN_ERROR_RATE);
 
-    // Tidak ada materi yang sulit -> tidak perlu memanggil AI sama sekali.
     if (topicAnalysis.length === 0) {
       const emptyAnalysis = { summary: NO_ISSUE_SUMMARY, topics: [] };
       await supabaseServer.from("kuis").update({ ai_insight: emptyAnalysis }).eq("kuis_id", kuisId);
@@ -187,8 +186,6 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
       required: ["summary", "topics"]
     };
 
-    // Daftar model yang tersedia di API key ini (urut prioritas). Jika satu model
-    // sedang overload (503/429), coba ulang dengan backoff lalu pindah ke model berikutnya.
     const modelCandidates = Array.from(
       new Set(
         [
@@ -203,18 +200,21 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
       ),
     );
 
-    const isRetryable = (e: any) => {
-      const msg = String(e?.message || "");
+    const isRetryable = (e: unknown) => {
+      const { status, message } = asGeminiError(e);
+      const msg = String(message || "");
       return (
-        [429, 500, 502, 503, 504].includes(Number(e?.status)) ||
+        [429, 500, 502, 503, 504].includes(Number(status)) ||
         /\b(429|500|502|503|504)\b|high demand|UNAVAILABLE|overloaded|RESOURCE_EXHAUSTED/i.test(msg)
       );
     };
-    const isModelMissing = (e: any) =>
-      Number(e?.status) === 404 || /NOT_FOUND|no longer available|is not found/i.test(String(e?.message || ""));
+    const isModelMissing = (e: unknown) => {
+      const { status, message } = asGeminiError(e);
+      return Number(status) === 404 || /NOT_FOUND|no longer available|is not found/i.test(String(message || ""));
+    };
 
     let response: Awaited<ReturnType<typeof ai.models.generateContent>> | undefined;
-    let lastError: any;
+    let lastError: unknown;
 
     outer: for (const model of modelCandidates) {
       for (let attempt = 1; attempt <= 3; attempt++) {
@@ -228,11 +228,11 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
             },
           });
           break outer;
-        } catch (e: any) {
+        } catch (e) {
           lastError = e;
-          if (isModelMissing(e)) break; // model tidak tersedia -> langsung ke model berikutnya
+          if (isModelMissing(e)) break;
           if (!isRetryable(e)) throw e;
-          console.warn(`Gemini ${model} gagal (percobaan ${attempt}/3): ${e?.message}`);
+          console.warn(`Gemini ${model} gagal (percobaan ${attempt}/3): ${asGeminiError(e).message}`);
           if (attempt < 3) await new Promise((r) => setTimeout(r, 1500 * attempt));
         }
       }
@@ -247,7 +247,6 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
 
     const analysis = sanitizeAnalysis(JSON.parse(aiText));
 
-    // Save insight to DB
     await supabaseServer
       .from("kuis")
       .update({ ai_insight: analysis })
@@ -258,8 +257,12 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
       analysis,
       cached: false
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Classroom Analysis error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate AI insight" }, { status: error.status || 500 });
+    const { status, message } = asGeminiError(error);
+    return NextResponse.json(
+      { error: message || "Gagal membuat AI insight" },
+      { status: status || 500 },
+    );
   }
 }

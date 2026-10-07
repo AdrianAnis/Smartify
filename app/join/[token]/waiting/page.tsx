@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
@@ -12,66 +12,66 @@ export default function StudentWaitingPage({
   params: Promise<{ token: string }>;
 }) {
   const router = useRouter();
-  const [token, setToken] = useState("");
+  const { token } = use(params);
   const [kuisId, setKuisId] = useState<number | null>(null);
   const [sesiId, setSesiId] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [jumlahPeserta, setJumlahPeserta] = useState(0);
   const [isReady, setIsReady] = useState(false);
 
-  async function redirectToResultWhenReady(t: string) {
-    try {
-      const res = await fetch(`/api/join/${t}/result?ready=1`, { cache: "no-store" });
-      const data = await res.json();
-      if (res.ok && data.ready) {
-        router.replace(`/join/${t}/result`);
-      } else if (!res.ok) {
-        console.error(`Failed to verify quiz result before navigation: HTTP ${res.status}`);
+  const redirectToResultWhenReady = useCallback(
+    async (t: string) => {
+      try {
+        const res = await fetch(`/api/join/${t}/result?ready=1`, { cache: "no-store" });
+        const data = await res.json();
+        if (res.ok && data.ready) {
+          router.replace(`/join/${t}/result`);
+        } else if (!res.ok) {
+          console.error(`Failed to verify quiz result before navigation: HTTP ${res.status}`);
+        }
+      } catch (error) {
+        console.error("Failed to verify quiz result before navigation:", error);
       }
-    } catch (error) {
-      console.error("Failed to verify quiz result before navigation:", error);
-    }
-  }
+    },
+    [router],
+  );
 
   useEffect(() => {
-    params.then(({ token: t }) => {
-      setToken(t);
-      initWaiting(t);
-    });
-  }, [params]);
+    async function initWaiting(t: string) {
+      try {
+        const res = await fetch(`/api/join/${t}`);
+        const data = await res.json();
+        if (data.status === "ongoing") {
+          router.replace(`/join/${t}/play`);
+          return;
+        }
 
-  async function initWaiting(t: string) {
-    try {
-      const res = await fetch(`/api/join/${t}`);
-      const data = await res.json();
-      if (data.status === "ongoing") {
-        router.replace(`/join/${t}/play`);
-        return;
-      }
+        if (data.status === "selesai" || data.status === "finished") {
+          await redirectToResultWhenReady(t);
+          return;
+        }
 
-      if (data.status === "selesai" || data.status === "finished") {
-        await redirectToResultWhenReady(t);
-        return;
-      }
+        if (!res.ok) {
+          router.replace(`/join/${t}`);
+          return;
+        }
 
-      if (!res.ok) {
+        setKuisId(data.kuisId);
+        setSesiId(data.sesiId);
+        setJumlahPeserta(data.jumlahPeserta ?? 0);
+
+        const meRes = await fetch(`/api/join/${t}/me`);
+        const meData = await meRes.json();
+        if (meData.nama) setNama(meData.nama);
+
+        setIsReady(true);
+      } catch {
         router.replace(`/join/${t}`);
-        return;
       }
-
-      setKuisId(data.kuisId);
-      setSesiId(data.sesiId);
-      setJumlahPeserta(data.jumlahPeserta ?? 0);
-
-      const meRes = await fetch(`/api/join/${t}/me`);
-      const meData = await meRes.json();
-      if (meData.nama) setNama(meData.nama);
-
-      setIsReady(true);
-    } catch {
-      router.replace(`/join/${t}`);
     }
-  }
+
+    void initWaiting(token);
+  }, [token, router, redirectToResultWhenReady]);
 
   const handleKuisStart = useCallback(
     (t: string) => {
@@ -99,7 +99,7 @@ export default function StudentWaitingPage({
         console.error("Failed to sync waiting-room quiz status:", error);
       }
     },
-    [router],
+    [router, redirectToResultWhenReady],
   );
 
   useEffect(() => {

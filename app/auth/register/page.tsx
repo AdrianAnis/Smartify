@@ -57,15 +57,11 @@ export default function RegisterPage() {
       if (!response.ok) throw new Error(data.error);
 
       router.push(`/auth/verify?email=${encodeURIComponent(email)}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal mendaftar");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.assign("/api/auth/google?redirect=/dashboard");
   };
 
   return (
@@ -220,7 +216,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="mt-6">
-          <GoogleLoginButton text="Daftar dengan Google" onClick={handleGoogleLogin} />
+          <GoogleLoginButton href="/api/auth/google?redirect=/dashboard" text="Daftar dengan Google" />
         </div>
 
         <p className="text-center text-gray-500 mt-8 text-sm">

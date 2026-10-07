@@ -60,6 +60,12 @@ export async function getStudentSavedAnswers(pesertaId: number) {
 
 const MAX_ANSWER_LENGTH = 500;
 
+export interface QuestionScore {
+  soal_id: number;
+  is_benar: boolean;
+  score: number;
+}
+
 export async function saveSingleAnswer(
   pesertaId: number,
   soalId: number,
@@ -159,7 +165,7 @@ export async function gradeAndSubmitQuiz(pesertaId: number, kuisId: number) {
 
   let totalMaxScore = 0;
   let totalEarnedScore = 0;
-  const scorePerQuestion: { soal_id: number; is_benar: boolean; score: number }[] = [];
+  const scorePerQuestion: QuestionScore[] = [];
   const gradingDetail: { soal_id: number; jawaban: string; is_benar: boolean }[] = [];
 
   for (const s of soalList ?? []) {

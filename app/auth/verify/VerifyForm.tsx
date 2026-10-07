@@ -3,16 +3,15 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MailIcon, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 
 interface VerifyFormProps {
   emailParam: string;
 }
 
-export default function VerifyForm({ emailParam }: VerifyFormProps) {
+export default function VerifyForm({ emailParam: email }: VerifyFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState(emailParam);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +21,6 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
   const handleOtpChange = (index: number, value: string) => {
     const val = value.replace(/\D/g, "");
     
-    // Handle paste
     if (val.length > 1) {
       const chars = val.split("").slice(0, 6);
       const pasteOtp = [...otp];
@@ -39,7 +37,6 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
     newOtp[index] = val;
     setOtp(newOtp);
 
-    // Move to next input if filled
     if (val && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -76,8 +73,8 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
 
       setSuccess("Email berhasil diverifikasi! Mengarahkan ke halaman login...");
       setTimeout(() => router.push("/auth/login"), 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
@@ -104,8 +101,8 @@ export default function VerifyForm({ emailParam }: VerifyFormProps) {
       if (!response.ok) throw new Error(data.error);
 
       setSuccess("Kode verifikasi baru telah dikirim ke email Anda");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }

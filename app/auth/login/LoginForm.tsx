@@ -38,15 +38,11 @@ export default function LoginForm({ redirectTo, initialError = "" }: LoginFormPr
 
       router.push(redirectTo);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal masuk");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.assign(`/api/auth/google?redirect=${encodeURIComponent(redirectTo)}`);
   };
 
   return (
@@ -154,7 +150,7 @@ export default function LoginForm({ redirectTo, initialError = "" }: LoginFormPr
         </div>
 
         <div className="mt-8">
-          <GoogleLoginButton onClick={handleGoogleLogin} />
+          <GoogleLoginButton href={`/api/auth/google?redirect=${encodeURIComponent(redirectTo)}`} />
         </div>
 
         <p className="text-center text-gray-500 mt-8 text-sm">

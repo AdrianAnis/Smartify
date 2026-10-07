@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, QrCode, CheckCircle2, Loader2, ShieldCheck, Zap, AlertCircle } from "lucide-react";
+import { QrCode, CheckCircle2, Loader2, ShieldCheck, Zap, AlertCircle } from "lucide-react";
 import { Navbar } from "@/components/dashboard/Navbar";
 
 export default function CheckoutPage() {
@@ -39,12 +40,10 @@ export default function CheckoutPage() {
           setMayarLink(data.link);
         } else if (data.data?.link) {
           setMayarLink(data.data.link);
-        } else {
-          console.log("Mayar Response:", data);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error API Mayar:", err);
-        setErrorMsg(err.message);
+        setErrorMsg(err instanceof Error ? err.message : "Gagal membuat invoice");
       } finally {
         setLoading(false);
       }
@@ -57,7 +56,6 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       if (qrImageUrl) {
-        // Panggil endpoint /api/payment/simulate untuk Sandbox test
         const res = await fetch("/api/payment/simulate", { method: "POST" });
         if (!res.ok) throw new Error("Gagal simulasi upgrade");
         
@@ -67,11 +65,9 @@ export default function CheckoutPage() {
           router.refresh();
         }, 2000);
       } else if (mayarLink) {
-        // Buka halaman pembayaran Mayar di tab baru
         window.open(mayarLink, "_blank");
         setLoading(false);
       } else {
-        // Jika error, gunakan fallback simulasi lokal (tetap call simulate untuk update DB)
         const res = await fetch("/api/payment/simulate", { method: "POST" });
         if (!res.ok) throw new Error("Gagal simulasi upgrade");
 
@@ -81,22 +77,20 @@ export default function CheckoutPage() {
           router.refresh();
         }, 2000);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setErrorMsg(err.message);
+      setErrorMsg(err instanceof Error ? err.message : "Gagal memproses pembayaran");
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Custom Minimal Navbar */}
       <Navbar backHref="/dashboard" title="Detail Pembayaran" />
 
       <main className="flex-1 flex items-center justify-center p-4 pt-28 md:pt-32">
         <div className="w-full max-w-4xl grid md:grid-cols-2 gap-6 items-start">
           
-          {/* Rincian Pesanan */}
           <div className="bg-white rounded-xl p-6 md:p-8">
 
             <h1 className="text-2xl font-bold text-foreground mb-2">Rincian Pembayaran</h1>
@@ -134,7 +128,6 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* QRIS / Instruksi */}
           <div className="bg-white rounded-xl p-6 md:p-8 flex flex-col h-full">
             <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
               <QrCode className="h-5 w-5 text-gray-400" />
@@ -166,8 +159,7 @@ export default function CheckoutPage() {
                   ) : qrImageUrl ? (
                     <div className="flex flex-col items-center">
                       <div className="w-64 h-64 bg-white p-2 rounded-xl mb-4 flex items-center justify-center border border-border shadow-sm overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={qrImageUrl} alt="QRIS Code" className="w-full h-full object-contain" />
+                        <Image src={qrImageUrl} alt="QRIS Code" width={240} height={240} unoptimized className="w-full h-full object-contain" />
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
                         Buka aplikasi pembayaran (OVO, GoPay, Dana, m-Banking) untuk scan QRIS ini.

@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Gagal masuk" },
+      { status: 400 },
+    );
   }
 }

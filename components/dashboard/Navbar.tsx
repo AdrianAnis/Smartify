@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Sparkles, LogOut, Bell, Menu, X, Zap, Crown, ArrowLeft } from "lucide-react";
 import { PremiumModal } from "@/components/premium/PremiumModal";
+
+function readStoredIds(key: string): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
 
 interface UserData {
   user_id: number;
@@ -31,7 +41,6 @@ interface NavbarProps {
   backHref?: string;
   backLabel?: string;
   title?: string;
-  fullWidth?: boolean; // Kept for backwards compatibility, though new design is already centered max-w-7xl
 }
 
 export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps = {}) {
@@ -44,9 +53,8 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<{ used: number; limit: number; remaining: number; isPremium: boolean; expiredAt?: string } | null>(null);
-  const [quotaLoading, setQuotaLoading] = useState(false);
+  const [quotaLoaded, setQuotaLoaded] = useState(false);
 
-  // Notifications State
   interface AppNotification {
     id: string;
     type: 'premium_alert' | 'premium_status' | 'free_status' | 'quota';
@@ -62,38 +70,25 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
     };
   }
 
-  const [readNotifs, setReadNotifs] = useState<string[]>([]);
-  const [dismissedNotifs, setDismissedNotifs] = useState<string[]>([]);
-  const [activeNotifs, setActiveNotifs] = useState<AppNotification[]>([]);
+  const [readNotifs, setReadNotifs] = useState<string[]>(() => readStoredIds("smartify_read_notifs"));
+  const [dismissedNotifs, setDismissedNotifs] = useState<string[]>(() =>
+    readStoredIds("smartify_dismissed_notifs"),
+  );
+  const quotaLoading = Boolean(user) && !quotaLoaded;
 
-  // Load from local storage
   useEffect(() => {
-    try {
-      const read = localStorage.getItem('smartify_read_notifs');
-      if (read) setReadNotifs(JSON.parse(read));
-      
-      const dismissed = localStorage.getItem('smartify_dismissed_notifs');
-      if (dismissed) setDismissedNotifs(JSON.parse(dismissed));
-    } catch(e) {}
-  }, []);
-
-  // Fetch quota when user is loaded
-  useEffect(() => {
-    if (user) {
-      setQuotaLoading(true);
-      fetch("/api/user/quota")
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data) setQuotaInfo(data);
-          setQuotaLoading(false);
-        })
-        .catch(() => setQuotaLoading(false));
-    }
+    if (!user) return;
+    fetch("/api/user/quota")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setQuotaInfo(data);
+      })
+      .catch((error) => console.error("Failed to load quota:", error))
+      .finally(() => setQuotaLoaded(true));
   }, [user]);
 
-  // Generate notifications
-  useEffect(() => {
-    if (!quotaInfo) return;
+  const activeNotifs = useMemo(() => {
+    if (!quotaInfo) return [];
     const todayStr = new Date().toISOString().split('T')[0];
     const newNotifs: AppNotification[] = [];
 
@@ -184,7 +179,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
       iconColorClass: 'text-yellow-500'
     });
 
-    setActiveNotifs(newNotifs);
+    return newNotifs;
   }, [quotaInfo]);
 
   const visibleNotifs = activeNotifs.filter(n => !dismissedNotifs.includes(n.id));
@@ -192,7 +187,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
 
   const handleNotificationClick = () => {
     if (!notificationOpen) {
-      // Mark as read when opening
       const newReads = [...readNotifs];
       let changed = false;
       visibleNotifs.forEach(n => {
@@ -248,7 +242,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white font-sans">
         <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           
-          {/* Left: Back Button & Logo/Title */}
           <div className="flex flex-1 items-center justify-start gap-4">
             {backHref && (
               <Link
@@ -278,7 +271,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
             )}
           </div>
 
-          {/* Center: Desktop Navigation */}
           {!backHref && !title && (
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-2">
               {menuItems.map((item) => {
@@ -300,7 +292,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
             </div>
           )}
 
-          {/* Right: Actions */}
           <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
             <button 
               onClick={() => setPremiumModalOpen(true)}
@@ -427,7 +418,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
         </div>
       </nav>
 
-      {/* Mobile Navigation Drawer */}
       {mobileNavOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">
           <div className="fixed inset-0 bg-black/20" onClick={() => setMobileNavOpen(false)} />
@@ -473,7 +463,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
         </div>
       )}
 
-      {/* Premium Modal */}
       <PremiumModal 
         isOpen={premiumModalOpen} 
         onClose={() => setPremiumModalOpen(false)} 

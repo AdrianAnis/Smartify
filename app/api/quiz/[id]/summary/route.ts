@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
+import type { QuestionScore } from "@/lib/classroom/quiz-play";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,7 @@ export async function GET(
     const questionStats = new Map<number, { attempts: number; correct: number }>();
     hasilList?.forEach((h) => {
       if (Array.isArray(h.score_per_question)) {
-        h.score_per_question.forEach((sq: any) => {
+        h.score_per_question.forEach((sq: QuestionScore) => {
           const sId = sq.soal_id;
           if (!questionStats.has(sId)) {
             questionStats.set(sId, { attempts: 0, correct: 0 });
@@ -82,7 +83,7 @@ export async function GET(
 
     const soalListWithDynamicDifficulty = (soalList || []).map((s) => {
       const stat = questionStats.get(s.soal_id);
-      let accuracy = 1; // default if no one answered
+      let accuracy = 1;
       if (stat && stat.attempts > 0) {
         accuracy = stat.correct / stat.attempts;
       }

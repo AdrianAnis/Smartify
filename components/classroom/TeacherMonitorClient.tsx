@@ -77,10 +77,7 @@ export function TeacherMonitorClient({
   }, [fetchLatest]);
 
   useEffect(() => {
-    if (!kuis.waktu_mulai_sesi || kuis.status === "selesai") {
-      setRemainingSeconds(0);
-      return;
-    }
+    if (!kuis.waktu_mulai_sesi || kuis.status === "selesai") return;
 
     const startTime = new Date(kuis.waktu_mulai_sesi).getTime();
     const durationMs = kuis.durasi_menit * 60 * 1000;
