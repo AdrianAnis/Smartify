@@ -24,6 +24,7 @@ export const RATE_LIMITS = {
   resetPassword: { ip: [10, 15 * MINUTE] },
   generate: { ip: [20, HOUR], email: [10, HOUR] },
   googleLogin: { ip: [30, 15 * MINUTE] },
+  joinQuiz: { ip: [120, 10 * MINUTE] },
 } as const;
 
 export function getClientIp(request: NextRequest): string {

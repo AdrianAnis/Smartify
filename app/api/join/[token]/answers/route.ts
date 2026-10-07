@@ -74,6 +74,9 @@ export async function POST(
 
     return NextResponse.json({ success: true, soalId, jawabanText });
   } catch (error) {
+    if (error instanceof Error && error.message === "Soal tidak ditemukan di kuis ini") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error("Save answer error:", error);
     return NextResponse.json({ error: "Gagal menyimpan jawaban." }, { status: 500 });
   }

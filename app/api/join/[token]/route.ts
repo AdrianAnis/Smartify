@@ -4,6 +4,9 @@ import { getActiveSesiByToken } from "@/lib/classroom/session";
 import { joinAsParticipant, getParticipantByToken } from "@/lib/classroom/participant";
 import { PARTICIPANT_COOKIE } from "@/lib/classroom/session";
 import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
+import { checkRateLimit, rulesFor, tooManyRequests } from "@/lib/auth/rate-limit";
+
+const MAX_PARTICIPANTS = 200;
 
 export async function GET(
   request: NextRequest,
@@ -109,8 +112,23 @@ export async function POST(
       );
     }
 
+    const [limit, { count: participantCount }] = await Promise.all([
+      checkRateLimit(rulesFor("joinQuiz", request)),
+      supabaseServer
+        .from("peserta_kuis")
+        .select("peserta_id", { count: "exact", head: true })
+        .eq("kuis_id", sesi.kuis_id),
+    ]);
+    if (!limit.allowed) return tooManyRequests(limit.retryAfter);
+    if ((participantCount ?? 0) >= MAX_PARTICIPANTS) {
+      return NextResponse.json(
+        { error: "Ruang tunggu sudah penuh. Hubungi guru kamu." },
+        { status: 409 },
+      );
+    }
+
     const body = await request.json();
-    const nama = (body.nama ?? "").trim();
+    const nama = String(body.nama ?? "").trim();
 
     if (!nama || nama.length < 2) {
       return NextResponse.json(
@@ -141,6 +159,7 @@ export async function POST(
 
     response.cookies.set(PARTICIPANT_COOKIE, sessionToken, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 8,

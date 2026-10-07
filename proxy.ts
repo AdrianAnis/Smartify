@@ -30,9 +30,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/generate/:path*",
-    "/quiz/:id/detail",
-    "/quiz/:id/preview",
-    "/quiz/:id/lihat-soal",
-    "/quiz/:id/progress",
+    "/quiz/:path*",
+    "/payment/:path*",
   ],
 };

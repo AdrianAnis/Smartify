@@ -46,11 +46,11 @@ export function QuizPreviewSkeleton() {
         </div>
       </div>
 
-      <div className="space-y-10 rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+      <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="border-b border-gray-100 pb-8 last:border-b-0 last:pb-0"
+            className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <Skeleton className="h-6 w-20" />

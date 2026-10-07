@@ -66,7 +66,7 @@ function QuestionItem({
   const correct = correctIndex >= 0 ? soal.pilihan[correctIndex] : null;
 
   return (
-    <div className="border-b border-gray-100 pb-8 last:border-b-0 last:pb-0">
+    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8 [&>:last-child]:mb-0">
       <div className="mb-4 flex items-start justify-between gap-4">
         <h3 className="text-lg font-bold text-gray-800">Soal {index + 1}.</h3>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -385,21 +385,22 @@ export default function QuizPreviewPage() {
         </div>
       )}
 
-      <div className="space-y-10 rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+      <div className="space-y-6">
         {soal.map((s, index) =>
           editingId === s.soal_id ? (
-            <QuestionEditor
-              key={s.soal_id}
-              quizId={id}
-              soal={s}
-              index={index}
-              topics={topicNames}
-              onCancel={() => setEditingId(null)}
-              onSaved={(updated) => {
-                setSoal((prev) => prev.map((item) => (item.soal_id === updated.soal_id ? updated : item)));
-                setEditingId(null);
-              }}
-            />
+            <div key={s.soal_id} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+              <QuestionEditor
+                quizId={id}
+                soal={s}
+                index={index}
+                topics={topicNames}
+                onCancel={() => setEditingId(null)}
+                onSaved={(updated) => {
+                  setSoal((prev) => prev.map((item) => (item.soal_id === updated.soal_id ? updated : item)));
+                  setEditingId(null);
+                }}
+              />
+            </div>
           ) : (
             <QuestionItem
               key={s.soal_id}
@@ -415,7 +416,7 @@ export default function QuizPreviewPage() {
           ),
         )}
         {soal.length === 0 && (
-          <div className="py-12 text-center text-gray-500">Belum ada soal untuk kuis ini.</div>
+          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8 py-12 text-center text-gray-500">Belum ada soal untuk kuis ini.</div>
         )}
       </div>
 
