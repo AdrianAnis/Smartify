@@ -15,8 +15,6 @@
     "docx": "^9.8.1",
     "jose": "^6.2.12",
     "lucide-react": "^1.51.0",
-    "mayar-node-sdk": "^2.0.0",
-    "midtrans-client": "^1.4.3",
     "next": "16.3.8",
     "qrcode.react": "^4.2.0",
     "react": "19.2.8",
