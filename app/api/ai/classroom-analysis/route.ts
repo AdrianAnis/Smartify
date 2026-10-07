@@ -259,10 +259,9 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
     });
   } catch (error) {
     console.error("Classroom Analysis error:", error);
-    const { status, message } = asGeminiError(error);
     return NextResponse.json(
-      { error: message || "Gagal membuat AI insight" },
-      { status: status || 500 },
+      { error: "Gagal membuat AI insight. Silakan coba lagi beberapa saat lagi." },
+      { status: 500 },
     );
   }
 }

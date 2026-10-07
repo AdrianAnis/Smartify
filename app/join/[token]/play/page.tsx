@@ -259,34 +259,6 @@ export default function StudentQuizPlayPage({
     const channel = supabase
       .channel(`quiz-${token}`, { config: { private: false } })
       .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "kuis",
-          filter: `kuis_id=eq.${kuis.kuisId}`,
-        },
-        (payload) => {
-          const newStatus = (payload.new as { status: string }).status;
-          if (newStatus === "selesai" || newStatus === "finished") {
-            void syncQuizStatus();
-          }
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "sesi_kuis",
-          filter: `kuis_id=eq.${kuis.kuisId}`,
-        },
-        (payload) => {
-          const isActive = (payload.new as { is_active: boolean }).is_active;
-          if (!isActive) void syncQuizStatus();
-        },
-      )
-      .on(
         "broadcast",
         { event: "quiz-updated" },
         () => {

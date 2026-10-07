@@ -73,13 +73,6 @@ export default function StudentWaitingPage({
     void initWaiting(token);
   }, [token, router, redirectToResultWhenReady]);
 
-  const handleKuisStart = useCallback(
-    (t: string) => {
-      router.replace(`/join/${t}/play`);
-    },
-    [router],
-  );
-
   const syncQuizStatus = useCallback(
     async (t: string) => {
       try {
@@ -108,53 +101,6 @@ export default function StudentWaitingPage({
     const channel = supabase
       .channel(`quiz-${token}`, { config: { private: false } })
       .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "kuis",
-          filter: `kuis_id=eq.${kuisId}`,
-        },
-        (payload) => {
-          const newStatus = (payload.new as { status: string }).status;
-          if (newStatus === "ongoing") {
-            handleKuisStart(token);
-          } else if (newStatus === "selesai" || newStatus === "finished") {
-            void syncQuizStatus(token);
-          }
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "sesi_kuis",
-          filter: `sesi_id=eq.${sesiId}`,
-        },
-        (payload) => {
-          const isActive = (payload.new as { is_active: boolean }).is_active;
-          if (!isActive) void syncQuizStatus(token);
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "peserta_kuis",
-          filter: `kuis_id=eq.${kuisId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setJumlahPeserta((prev) => prev + 1);
-          }
-          if (payload.eventType === "DELETE") {
-            setJumlahPeserta((prev) => Math.max(0, prev - 1));
-          }
-        },
-      )
-      .on(
         "broadcast",
         { event: "quiz-updated" },
         () => {
@@ -172,7 +118,7 @@ export default function StudentWaitingPage({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [kuisId, sesiId, token, handleKuisStart, router, syncQuizStatus]);
+  }, [kuisId, sesiId, token, syncQuizStatus]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">

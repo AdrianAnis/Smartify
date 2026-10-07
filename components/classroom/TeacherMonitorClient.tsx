@@ -104,56 +104,6 @@ export function TeacherMonitorClient({
         { config: { private: false } },
       )
       .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "peserta_kuis",
-          filter: `kuis_id=eq.${kId}`,
-        },
-        scheduleLatestRefresh,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "jawaban_siswa",
-          filter: `kuis_id=eq.${kId}`,
-        },
-        scheduleLatestRefresh,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "hasil_kuis",
-          filter: `kuis_id=eq.${kId}`,
-        },
-        scheduleLatestRefresh,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "kuis",
-          filter: `kuis_id=eq.${kId}`,
-        },
-        scheduleLatestRefresh,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "sesi_kuis",
-          filter: `kuis_id=eq.${kId}`,
-        },
-        scheduleLatestRefresh,
-      )
-      .on(
         "broadcast",
         { event: "quiz-updated" },
         scheduleLatestRefresh,

@@ -19,7 +19,7 @@ import {
   PREMIUM_DAILY_MAX_QUESTIONS,
   isPremiumEffective,
 } from "@/lib/subscription/plan";
-import { countQuestionsLast24Hours, recordGeneration } from "@/lib/subscription/quota.server";
+import { releaseGeneration, reserveGeneration } from "@/lib/subscription/quota.server";
 
 export const maxDuration = 60;
 
@@ -95,52 +95,50 @@ export async function POST(request: NextRequest) {
 
     const premium = isPremiumEffective(user.subscription_status, user.expired_at);
 
-    const used = await countQuestionsLast24Hours(user.user_id);
-    const totalWithThisRequest = used + totalQuestions;
-
-    if (!premium) {
-      if (type !== "pilihan_ganda") {
-        return subscriptionLimit(
-          "Free Trial hanya mendukung soal pilihan ganda. Upgrade ke Premium untuk isian singkat dan campuran.",
-        );
-      }
-      if (totalWithThisRequest > FREE_DAILY_MAX_QUESTIONS) {
-        return subscriptionLimit(
-          `Free Trial dibatasi akumulasi ${FREE_DAILY_MAX_QUESTIONS} nomor soal dalam 24 jam. Anda sudah membuat ${used} soal. Upgrade ke Premium untuk batas lebih besar.`
-        );
-      }
-    } else {
-      if (totalWithThisRequest > PREMIUM_DAILY_MAX_QUESTIONS) {
-        return subscriptionLimit(
-          `Paket Premium dibatasi akumulasi maksimal ${PREMIUM_DAILY_MAX_QUESTIONS} nomor soal dalam 24 jam. Anda sudah membuat ${used} soal.`
-        );
-      }
+    if (!premium && type !== "pilihan_ganda") {
+      return subscriptionLimit(
+        "Free Trial hanya mendukung soal pilihan ganda. Upgrade ke Premium untuk isian singkat dan campuran.",
+      );
     }
 
-    const questions = await generateQuestions({
-      pdfBase64: buffer.toString("base64"),
-      title,
-      difficulty,
-      pilganCount,
-      isianCount,
-    });
+    const dailyLimit = premium ? PREMIUM_DAILY_MAX_QUESTIONS : FREE_DAILY_MAX_QUESTIONS;
+    const reservation = await reserveGeneration(user.user_id, totalQuestions, dailyLimit);
 
-    const quizId = await createQuizWithQuestions({
-      guruId: user.user_id,
-      title,
-      type,
-      difficulty,
-      durasiMenit,
-      kkm,
-      pilganCount,
-      isianCount,
-      file: { name: file.name, size: file.size },
-      questions,
-    });
+    if (!reservation.allowed) {
+      return subscriptionLimit(
+        premium
+          ? `Paket Premium dibatasi akumulasi maksimal ${dailyLimit} nomor soal dalam 24 jam. Anda sudah membuat ${reservation.used} soal.`
+          : `Free Trial dibatasi akumulasi ${dailyLimit} nomor soal dalam 24 jam. Anda sudah membuat ${reservation.used} soal. Upgrade ke Premium untuk batas lebih besar.`,
+      );
+    }
 
-    await recordGeneration(user.user_id, totalQuestions);
+    try {
+      const questions = await generateQuestions({
+        pdfBase64: buffer.toString("base64"),
+        title,
+        difficulty,
+        pilganCount,
+        isianCount,
+      });
 
-    return NextResponse.json({ success: true, quizId });
+      const quizId = await createQuizWithQuestions({
+        guruId: user.user_id,
+        title,
+        type,
+        difficulty,
+        durasiMenit,
+        kkm,
+        pilganCount,
+        isianCount,
+        file: { name: file.name, size: file.size },
+        questions,
+      });
+
+      return NextResponse.json({ success: true, quizId });
+    } catch (error) {
+      if (reservation.reservationId) await releaseGeneration(reservation.reservationId);
+      throw error;
+    }
   } catch (error) {
     if (error instanceof GenerateQuestionsError) {
       return NextResponse.json({ error: error.message }, { status: 502 });

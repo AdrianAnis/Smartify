@@ -91,35 +91,6 @@ export function WaitingRoomClient({
   useEffect(() => {
     const channel = supabase
       .channel(`quiz-${qrToken}`, { config: { private: false } })
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "peserta_kuis",
-          filter: `kuis_id=eq.${numericKuisId}`,
-        },
-        (payload) => {
-          const p = payload.new as Peserta;
-          setPeserta((prev) => {
-            if (prev.some((x) => x.peserta_id === p.peserta_id)) return prev;
-            return [...prev, p];
-          });
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "peserta_kuis",
-          filter: `kuis_id=eq.${numericKuisId}`,
-        },
-        (payload) => {
-          const deleted = payload.old as { peserta_id: number };
-          setPeserta((prev) => prev.filter((x) => x.peserta_id !== deleted.peserta_id));
-        },
-      )
       .on("broadcast", { event: "quiz-updated" }, (payload) => {
         if (payload.payload.type === "participant_changed") {
           void fetchPeserta();

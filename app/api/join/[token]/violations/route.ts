@@ -33,14 +33,14 @@ export async function POST(
     }
 
     const { violations } = await recordTabViolation(peserta.peserta_id);
+    const autoSubmitted = violations >= MAX_TAB_VIOLATIONS;
 
-    if (violations >= MAX_TAB_VIOLATIONS) {
+    if (autoSubmitted) {
       await gradeAndSubmitQuiz(peserta.peserta_id, sesi.kuis_id);
-      await publishQuizRealtimeEvent(token, "results_changed");
-      return NextResponse.json({ success: true, violations, autoSubmitted: true });
     }
+    await publishQuizRealtimeEvent(token, autoSubmitted ? "results_changed" : "participant_changed");
 
-    return NextResponse.json({ success: true, violations });
+    return NextResponse.json({ success: true, violations, autoSubmitted });
   } catch (error) {
     console.error("Record violation error:", error);
     return NextResponse.json({ error: "Gagal mencatat pelanggaran." }, { status: 500 });

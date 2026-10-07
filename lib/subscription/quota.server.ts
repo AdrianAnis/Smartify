@@ -17,10 +17,33 @@ export async function countQuestionsLast24Hours(userId: number): Promise<number>
   return data.reduce((sum, item) => sum + (item.total_soal || 0), 0);
 }
 
-export async function recordGeneration(userId: number, totalSoal: number) {
-  const { error } = await supabaseServer
-    .from("generation_logs")
-    .insert({ user_id: userId, total_soal: totalSoal });
+interface QuotaReservation {
+  allowed: boolean;
+  used: number;
+  reservationId: number | null;
+}
 
-  if (error) console.error("recordGeneration error:", error);
+export async function reserveGeneration(
+  userId: number,
+  totalSoal: number,
+  limit: number,
+): Promise<QuotaReservation> {
+  const { data, error } = await supabaseServer.rpc("reserve_generation", {
+    p_user_id: userId,
+    p_total_soal: totalSoal,
+    p_limit: limit,
+  });
+
+  const row = Array.isArray(data) ? data[0] : null;
+  if (error || !row) {
+    console.error("reserveGeneration error:", error);
+    throw new Error("Gagal memeriksa kuota generate");
+  }
+
+  return { allowed: row.allowed, used: row.used, reservationId: row.reservation_id };
+}
+
+export async function releaseGeneration(reservationId: number) {
+  const { error } = await supabaseServer.from("generation_logs").delete().eq("log_id", reservationId);
+  if (error) console.error("releaseGeneration error:", error);
 }
