@@ -3,49 +3,40 @@ import type { QuizSoal } from "./types";
 
 export { EDITABLE_STATUSES } from "./editable";
 
+interface SoalRow {
+  soal_id: number;
+  teks_soal: string;
+  tipe_soal: QuizSoal["tipe_soal"];
+  poin: number;
+  urutan: number;
+  topik: string;
+  concept_tags: string[];
+  penjelasan: string | null;
+  pilihan_jawaban: QuizSoal["pilihan"] | null;
+  kunci_jawaban: NonNullable<QuizSoal["kunci_jawaban"]> | NonNullable<QuizSoal["kunci_jawaban"]>[] | null;
+}
+
 export async function loadQuestions(kuisId: number, soalId?: number): Promise<QuizSoal[]> {
   let query = supabaseServer
     .from("soal")
-    .select("soal_id, teks_soal, tipe_soal, poin, urutan, topik, concept_tags, penjelasan")
+    .select(
+      "soal_id, teks_soal, tipe_soal, poin, urutan, topik, concept_tags, penjelasan, pilihan_jawaban(pilihan_id, teks_pilihan, is_benar, urutan), kunci_jawaban(jawaban_text, kata_kunci)",
+    )
     .eq("kuis_id", kuisId)
-    .order("urutan", { ascending: true });
+    .order("urutan", { ascending: true })
+    .order("urutan", { referencedTable: "pilihan_jawaban", ascending: true });
   if (soalId) query = query.eq("soal_id", soalId);
 
-  const { data: soalRows, error } = await query;
+  const { data, error } = await query;
   if (error) throw error;
-  if (soalRows.length === 0) return [];
 
-  const soalIds = soalRows.map((s) => s.soal_id);
-  const [pilihanRes, kunciRes] = await Promise.all([
-    supabaseServer
-      .from("pilihan_jawaban")
-      .select("pilihan_id, soal_id, teks_pilihan, is_benar, urutan")
-      .in("soal_id", soalIds)
-      .order("urutan", { ascending: true }),
-    supabaseServer
-      .from("kunci_jawaban")
-      .select("soal_id, jawaban_text, kata_kunci")
-      .in("soal_id", soalIds),
-  ]);
-  if (pilihanRes.error) throw pilihanRes.error;
-  if (kunciRes.error) throw kunciRes.error;
-
-  return soalRows.map((s) => {
-    const kunci = kunciRes.data.find((k) => k.soal_id === s.soal_id);
+  return (data as unknown as SoalRow[]).map(({ pilihan_jawaban, kunci_jawaban, ...soal }) => {
+    const kunci = Array.isArray(kunci_jawaban) ? kunci_jawaban[0] : kunci_jawaban;
     return {
-      ...s,
-      pilihan: pilihanRes.data
-        .filter((p) => p.soal_id === s.soal_id)
-        .map(({ pilihan_id, teks_pilihan, is_benar, urutan }) => ({
-          pilihan_id,
-          teks_pilihan,
-          is_benar,
-          urutan,
-        })),
-      kunci_jawaban: kunci
-        ? { jawaban_text: kunci.jawaban_text, kata_kunci: kunci.kata_kunci }
-        : null,
-    } as QuizSoal;
+      ...soal,
+      pilihan: pilihan_jawaban ?? [],
+      kunci_jawaban: kunci ? { jawaban_text: kunci.jawaban_text, kata_kunci: kunci.kata_kunci } : null,
+    };
   });
 }
 

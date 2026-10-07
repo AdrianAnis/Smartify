@@ -356,7 +356,17 @@ export async function findOrCreateGoogleUser(profile: GoogleProfile) {
   return created;
 }
 
-export async function getUserFromToken(token: string) {
+export interface SessionUser {
+  user_id: number;
+  email: string;
+  nama: string;
+  role: string;
+  avatar_url: string | null;
+  subscription_status: string;
+  expired_at: string | null;
+}
+
+export async function getUserFromToken(token: string): Promise<SessionUser | null> {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
     const userId = Number(payload.userId);
@@ -364,22 +374,13 @@ export async function getUserFromToken(token: string) {
 
     const { data: session } = await supabaseServer
       .from("user_sessions")
-      .select("id")
+      .select("users(user_id, email, nama, role, avatar_url, subscription_status, expired_at)")
       .eq("token", token)
       .gt("expires_at", new Date().toISOString())
       .maybeSingle();
 
-    if (!session) return null;
-
-    const { data: user } = await supabaseServer
-      .from("users")
-      .select(
-        "user_id, email, nama, role, avatar_url, subscription_status, expired_at",
-      )
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    return user;
+    const user = session?.users as unknown as SessionUser | null | undefined;
+    return user && user.user_id === userId ? user : null;
   } catch {
     return null;
   }
@@ -389,6 +390,17 @@ export async function getUserFromRequest(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   if (!token) return null;
   return getUserFromToken(token);
+}
+
+export async function getClaimedUserId(request: NextRequest): Promise<number | null> {
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    return Number(payload.userId) || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function logoutUser(token: string) {

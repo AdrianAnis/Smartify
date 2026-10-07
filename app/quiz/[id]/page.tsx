@@ -8,7 +8,6 @@ import { Navbar } from "@/components/dashboard/Navbar";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { DIFFICULTY_LABELS, QUIZ_TYPE_LABELS, type QuizStatus } from "@/lib/quiz/labels";
 import type { QuizDetail } from "@/lib/quiz/types";
-import { FinishedQuizView } from "./FinishedQuizView";
 import { DeleteQuizButton } from "./DeleteQuizButton";
 import { QuizDetailSkeleton } from "@/components/quiz/QuizDetailSkeleton";
 
@@ -20,6 +19,13 @@ const STEPS: { status: QuizStatus; label: string }[] = [
   { status: "selesai", label: "Selesai" },
 ];
 
+interface ResultSummary {
+  totalStudents: number;
+  finishedStudents: number;
+  avgScore: number;
+  lulusCount: number;
+}
+
 interface NextAction {
   title: string;
   description: string;
@@ -30,8 +36,9 @@ interface NextAction {
 function getNextAction(
   id: string,
   status: QuizStatus,
-  participantCount: number | null,
+  summary: ResultSummary | null,
 ): NextAction | null {
+  const participantCount = summary?.totalStudents ?? null;
   switch (status) {
     case "draft":
       return {
@@ -66,6 +73,16 @@ function getNextAction(
         label: "Buka monitor",
         href: `/quiz/${id}/monitor`,
       };
+    case "selesai":
+      return {
+        title: "Kuis selesai",
+        description:
+          summary && summary.finishedStudents > 0
+            ? `${summary.finishedStudents} siswa mengerjakan, rata-rata nilai ${summary.avgScore}, ${summary.lulusCount} siswa lulus.`
+            : "Lihat nilai siswa, analisis per soal, dan AI Insight.",
+        label: "Buka laporan hasil",
+        href: `/quiz/${id}/result`,
+      };
     default:
       return null;
   }
@@ -77,8 +94,8 @@ function Stepper({ current }: { current: QuizStatus }) {
   return (
     <ol className="flex items-start" aria-label="Tahapan kuis">
       {STEPS.map((step, index) => {
-        const done = index < currentIndex;
-        const active = index === currentIndex;
+        const done = index < currentIndex || current === "selesai";
+        const active = index === currentIndex && !done;
         return (
           <li
             key={step.status}
@@ -121,14 +138,17 @@ export default function QuizDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [kuis, setKuis] = useState<QuizDetail | null>(null);
-  const [participantCount, setParticipantCount] = useState<number | null>(null);
+  const [summary, setSummary] = useState<ResultSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`/api/quiz/${id}`);
+        const [res, sRes] = await Promise.all([
+          fetch(`/api/quiz/${id}`),
+          fetch(`/api/quiz/${id}/summary`),
+        ]);
         if (res.status === 401) {
           router.replace(`/auth/login?redirect=/quiz/${id}`);
           return;
@@ -137,12 +157,9 @@ export default function QuizDetailPage() {
         if (!res.ok) throw new Error(data.error);
         setKuis(data.kuis);
 
-        if (data.kuis.status === "waiting") {
-          const pRes = await fetch(`/api/quiz/${id}/participants`);
-          if (pRes.ok) {
-            const pData = await pRes.json();
-            setParticipantCount(Array.isArray(pData.peserta) ? pData.peserta.length : 0);
-          }
+        if (sRes.ok) {
+          const sData = await sRes.json();
+          if (sData.stats) setSummary(sData.stats);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal memuat detail kuis");
@@ -175,8 +192,7 @@ export default function QuizDetailPage() {
     );
   }
 
-  const isFinished = kuis.status === "selesai";
-  const nextAction = getNextAction(id, kuis.status, participantCount);
+  const nextAction = getNextAction(id, kuis.status, summary);
   const details = [
     { label: "Jumlah soal", value: `${kuis.total_soal} soal` },
     { label: "Jenis soal", value: QUIZ_TYPE_LABELS[kuis.jenis_soal] ?? kuis.jenis_soal },
@@ -226,30 +242,26 @@ export default function QuizDetailPage() {
           </section>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="space-y-6">
-              <section className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
-                <Stepper current={kuis.status} />
-                {!isFinished && nextAction && (
-                  <div className="mt-8 flex flex-col gap-5 border-t border-gray-100 pt-8 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <h2 className="text-xl font-semibold text-gray-900">{nextAction.title}</h2>
-                      <p className="mt-1 max-w-xl text-sm text-gray-500">
-                        {nextAction.description}
-                      </p>
-                    </div>
-                    <Link
-                      href={nextAction.href}
-                      className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                    >
-                      {nextAction.label}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
+            <section className="self-start rounded-xl bg-card p-6 shadow-sm sm:p-8">
+              <Stepper current={kuis.status} />
+              {nextAction && (
+                <div className="mt-8 flex flex-col gap-5 border-t border-gray-100 pt-8 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="text-xl font-semibold text-gray-900">{nextAction.title}</h2>
+                    <p className="mt-1 max-w-xl text-sm text-gray-500">
+                      {nextAction.description}
+                    </p>
                   </div>
-                )}
-              </section>
-
-              {isFinished && <FinishedQuizView id={id} />}
-            </div>
+                  <Link
+                    href={nextAction.href}
+                    className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    {nextAction.label}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
+            </section>
 
             <aside className="space-y-3 self-start rounded-xl bg-card p-3 shadow-sm">
               <Link

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
+import { parseId, requireQuizOwner } from "@/lib/quiz/quiz-owner";
 import { loadQuestions } from "@/lib/quiz/questions";
 
 const UNDELETABLE_STATUSES = ["waiting", "ongoing"];
@@ -11,10 +11,12 @@ export async function GET(
 ) {
   try {
     const { id } = await ctx.params;
-    const owner = await requireQuizOwner(request, id);
+    const quizId = parseId(id);
+    const [owner, soal] = await Promise.all([
+      requireQuizOwner(request, id),
+      quizId ? loadQuestions(quizId) : Promise.resolve([]),
+    ]);
     if (!owner.ok) return owner.response;
-
-    const soal = await loadQuestions(owner.kuis.kuis_id);
 
     return NextResponse.json({
       kuis: { ...owner.kuis, guru_id: undefined },

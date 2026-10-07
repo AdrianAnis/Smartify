@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getUserFromRequest } from "@/lib/auth/auth-service";
-
-type User = NonNullable<Awaited<ReturnType<typeof getUserFromRequest>>>;
+import { getUserFromRequest, type SessionUser } from "@/lib/auth/auth-service";
 
 export interface Kuis {
   kuis_id: number;
@@ -20,7 +18,7 @@ export interface Kuis {
 }
 
 type OwnerResult =
-  | { ok: true; user: User; kuis: Kuis }
+  | { ok: true; user: SessionUser; kuis: Kuis }
   | { ok: false; response: NextResponse };
 
 export function parseId(raw: string) {
@@ -28,11 +26,27 @@ export function parseId(raw: string) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+async function fetchKuis(quizId: number | null): Promise<Kuis | null> {
+  if (!quizId) return null;
+  const { data } = await supabaseServer
+    .from("kuis")
+    .select(
+      "kuis_id, guru_id, judul, jenis_soal, tingkat_kesulitan, durasi_menit, kkm, total_soal, status, kode_kuis, created_at, ai_insight",
+    )
+    .eq("kuis_id", quizId)
+    .maybeSingle();
+  return data as Kuis | null;
+}
+
 export async function requireQuizOwner(
   request: NextRequest,
   rawQuizId: string,
 ): Promise<OwnerResult> {
-  const user = await getUserFromRequest(request);
+  const [user, kuis] = await Promise.all([
+    getUserFromRequest(request),
+    fetchKuis(parseId(rawQuizId)),
+  ]);
+
   if (!user) {
     return {
       ok: false,
@@ -40,24 +54,12 @@ export async function requireQuizOwner(
     };
   }
 
-  const quizId = parseId(rawQuizId);
-  const notFound = {
-    ok: false as const,
-    response: NextResponse.json({ error: "Kuis tidak ditemukan" }, { status: 404 }),
-  };
-  if (!quizId) return notFound;
-
-  const { data: kuis } = await supabaseServer
-    .from("kuis")
-    .select(
-      "kuis_id, guru_id, judul, jenis_soal, tingkat_kesulitan, durasi_menit, kkm, total_soal, status, kode_kuis, created_at, ai_insight",
-    )
-    .eq("kuis_id", quizId)
-    .maybeSingle();
-
   if (!kuis || (kuis.guru_id !== user.user_id && user.role !== "admin")) {
-    return notFound;
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Kuis tidak ditemukan" }, { status: 404 }),
+    };
   }
 
-  return { ok: true, user, kuis: kuis as Kuis };
+  return { ok: true, user, kuis };
 }

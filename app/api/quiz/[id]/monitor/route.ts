@@ -8,32 +8,32 @@ export async function GET(
 ) {
   try {
     const { id } = await ctx.params;
-    const auth = await requireQuizOwner(request, id);
-    if (!auth.ok) return auth.response;
-
     const kuisId = Number(id);
 
-    const { data: kuis } = await supabaseServer
-      .from("kuis")
-      .select("kuis_id, judul, status, durasi_menit, kkm, total_soal, waktu_mulai_sesi, kode_kuis")
-      .eq("kuis_id", kuisId)
-      .single();
+    const [auth, { data: kuis }, { data: pesertaList }, { data: jawabanList }, { data: hasilList }] =
+      await Promise.all([
+        requireQuizOwner(request, id),
+        supabaseServer
+          .from("kuis")
+          .select("kuis_id, judul, status, durasi_menit, kkm, total_soal, waktu_mulai_sesi, kode_kuis")
+          .eq("kuis_id", kuisId)
+          .maybeSingle(),
+        supabaseServer
+          .from("peserta_kuis")
+          .select("peserta_id, nama, status, tab_violations, joined_at, submitted_at")
+          .eq("kuis_id", kuisId)
+          .order("joined_at", { ascending: true }),
+        supabaseServer
+          .from("jawaban_siswa")
+          .select("peserta_id, soal_id")
+          .eq("kuis_id", kuisId),
+        supabaseServer
+          .from("hasil_kuis")
+          .select("peserta_id, score, status_kelulusan, graded_at")
+          .eq("kuis_id", kuisId),
+      ]);
 
-    const { data: pesertaList } = await supabaseServer
-      .from("peserta_kuis")
-      .select("peserta_id, nama, status, tab_violations, joined_at, submitted_at")
-      .eq("kuis_id", kuisId)
-      .order("joined_at", { ascending: true });
-
-    const { data: jawabanList } = await supabaseServer
-      .from("jawaban_siswa")
-      .select("peserta_id, soal_id")
-      .eq("kuis_id", kuisId);
-
-    const { data: hasilList } = await supabaseServer
-      .from("hasil_kuis")
-      .select("peserta_id, score, status_kelulusan, graded_at")
-      .eq("kuis_id", kuisId);
+    if (!auth.ok) return auth.response;
 
     const answerCountMap = new Map<number, number>();
     jawabanList?.forEach((j) => {

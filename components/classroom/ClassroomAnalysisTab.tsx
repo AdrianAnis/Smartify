@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import type { ClassroomInsight } from "@/lib/quiz/types";
 
 export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
@@ -35,17 +35,7 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
   }, [kuisId]);
 
   return (
-    <div className="space-y-4 relative">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-emerald-600" />
-          AI Insight
-          <span className="text-sm font-normal text-gray-500 hidden sm:inline-block ml-2">
-            Analisis berdasarkan hasil pengerjaan siswa
-          </span>
-        </h2>
-      </div>
-
+    <div>
       <div className="rounded-xl bg-white p-6 shadow-sm overflow-hidden">
         {error && (
           <div className="flex items-center gap-2 rounded-xl bg-danger-subtle p-4 text-sm font-medium text-danger-text mb-4">
@@ -74,7 +64,7 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-gray-500 animate-pulse">Smartify menganalisis pola jawaban siswa...</p>
           </div>
         )}

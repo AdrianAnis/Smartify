@@ -19,34 +19,33 @@ export default async function QuizResultPage({
   const token = cookieStore.get(AUTH_COOKIE)?.value;
   if (!token) redirect(`/auth/login?redirect=/quiz/${id}/result`);
 
-  const user = await getUserFromToken(token);
+  const [user, { data: kuis }, { data: pesertaList }, { data: hasilList }, { data: soalList }] =
+    await Promise.all([
+      getUserFromToken(token),
+      supabaseServer
+        .from("kuis")
+        .select("kuis_id, guru_id, judul, status, durasi_menit, kkm, total_soal, created_at")
+        .eq("kuis_id", kuisId)
+        .maybeSingle(),
+      supabaseServer
+        .from("peserta_kuis")
+        .select("peserta_id, nama, status, tab_violations, joined_at, submitted_at")
+        .eq("kuis_id", kuisId),
+      supabaseServer
+        .from("hasil_kuis")
+        .select("peserta_id, score, status_kelulusan, score_per_question, graded_at")
+        .eq("kuis_id", kuisId),
+      supabaseServer
+        .from("soal")
+        .select("soal_id, urutan, teks_soal, tipe_soal, topik, poin")
+        .eq("kuis_id", kuisId)
+        .order("urutan", { ascending: true }),
+    ]);
+
   if (!user) redirect(`/auth/login?redirect=/quiz/${id}/result`);
-
-  const { data: kuis } = await supabaseServer
-    .from("kuis")
-    .select("kuis_id, guru_id, judul, status, durasi_menit, kkm, total_soal, created_at, kode_kuis")
-    .eq("kuis_id", kuisId)
-    .maybeSingle();
-
   if (!kuis || (kuis.guru_id !== user.user_id && user.role !== "admin")) {
     redirect("/dashboard");
   }
-
-  const { data: pesertaList } = await supabaseServer
-    .from("peserta_kuis")
-    .select("peserta_id, nama, status, tab_violations, joined_at, submitted_at")
-    .eq("kuis_id", kuisId);
-
-  const { data: hasilList } = await supabaseServer
-    .from("hasil_kuis")
-    .select("peserta_id, score, status_kelulusan, score_per_question, grading_detail, graded_at")
-    .eq("kuis_id", kuisId);
-
-  const { data: soalList } = await supabaseServer
-    .from("soal")
-    .select("soal_id, urutan, teks_soal, tipe_soal, topik, poin")
-    .eq("kuis_id", kuisId)
-    .order("urutan", { ascending: true });
 
   const hasilMap = new Map<number, {
     score: number;

@@ -76,17 +76,6 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
   );
   const quotaLoading = Boolean(user) && !quotaLoaded;
 
-  useEffect(() => {
-    if (!user) return;
-    fetch("/api/user/quota")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setQuotaInfo(data);
-      })
-      .catch((error) => console.error("Failed to load quota:", error))
-      .finally(() => setQuotaLoaded(true));
-  }, [user]);
-
   const activeNotifs = useMemo(() => {
     if (!quotaInfo) return [];
     const todayStr = new Date().toISOString().split('T')[0];
@@ -213,15 +202,23 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const [res, quotaRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/user/quota"),
+        ]);
+        if (res.status === 401) {
+          router.replace("/auth/login");
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
-        } else if (res.status === 401) {
-          router.replace("/auth/login");
         }
+        if (quotaRes.ok) setQuotaInfo(await quotaRes.json());
       } catch (err) {
         console.error("Load user error:", err);
+      } finally {
+        setQuotaLoaded(true);
       }
     };
     void loadUser();

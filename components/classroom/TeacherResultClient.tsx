@@ -1,21 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import {
-  Download,
-  ArrowLeft,
-  Users,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  BarChart3,
-  Search,
-  Filter,
-  Eye,
-  Sparkles,
-} from "lucide-react";
-
+import { AlertTriangle, Download, FileText, Search, Users } from "lucide-react";
 import { ClassroomAnalysisTab } from "./ClassroomAnalysisTab";
 
 interface StudentResult {
@@ -54,7 +40,6 @@ interface QuizMeta {
   kkm: number;
   total_soal: number;
   created_at: string;
-  kode_kuis: string;
 }
 
 interface StatsMeta {
@@ -77,30 +62,45 @@ interface Props {
   initialQuestionAnalysis: QuestionAnalysis[];
 }
 
+type ResultTab = "siswa" | "soal" | "ai";
+type StatusFilter = "all" | "lulus" | "remedial";
+
+const TABS: { id: ResultTab; label: string }[] = [
+  { id: "siswa", label: "Nilai siswa" },
+  { id: "soal", label: "Analisis soal" },
+  { id: "ai", label: "AI Insight" },
+];
+
+const FILTERS: { id: StatusFilter; label: string }[] = [
+  { id: "all", label: "Semua" },
+  { id: "lulus", label: "Lulus" },
+  { id: "remedial", label: "Remedial" },
+];
+
+function formatScore(value: number) {
+  return Number.isInteger(value) ? value : Number(value.toFixed(1));
+}
+
 function formatWaktuWIB(raw: string | null | undefined): string {
-  if (!raw || raw === "-") return "-";
-  try {
-    const d = new Date(raw);
-    if (isNaN(d.getTime())) return "-";
-    const formatter = new Intl.DateTimeFormat("id-ID", {
-      timeZone: "Asia/Jakarta",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const parts = formatter.formatToParts(d);
-    const day = parts.find((p) => p.type === "day")?.value.padStart(2, "0");
-    const month = parts.find((p) => p.type === "month")?.value.padStart(2, "0");
-    const year = parts.find((p) => p.type === "year")?.value;
-    const hour = parts.find((p) => p.type === "hour")?.value.padStart(2, "0");
-    const minute = parts.find((p) => p.type === "minute")?.value.padStart(2, "0");
-    return `${day}/${month}/${year} ${hour}:${minute} WIB`;
-  } catch {
-    return "-";
-  }
+  if (!raw) return "-";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return "-";
+  const parts = new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("day")} ${get("month")}, ${get("hour")}:${get("minute")} WIB`;
+}
+
+function accuracyTone(accuracy: number, kkm: number) {
+  if (accuracy >= kkm) return { bar: "bg-success", text: "text-success-text" };
+  if (accuracy >= 50) return { bar: "bg-warning", text: "text-warning-text" };
+  return { bar: "bg-danger", text: "text-danger-text" };
 }
 
 export function TeacherResultClient({
@@ -111,256 +111,216 @@ export function TeacherResultClient({
   initialTopicAnalysis,
   initialQuestionAnalysis,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"siswa" | "topik" | "ai">("siswa");
+  const [activeTab, setActiveTab] = useState<ResultTab>("siswa");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "lulus" | "remedial">("all");
+  const [filterStatus, setFilterStatus] = useState<StatusFilter>("all");
+
+  const rankById = useMemo(
+    () => new Map(initialStudents.map((s, index) => [s.pesertaId, index + 1])),
+    [initialStudents],
+  );
 
   const filteredStudents = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
     return initialStudents.filter((s) => {
-      const matchQuery = s.nama.toLowerCase().includes(searchQuery.toLowerCase().trim());
-      const matchStatus =
-        filterStatus === "all" ? true : s.statusKelulusan.toLowerCase() === filterStatus;
+      const matchQuery = s.nama.toLowerCase().includes(query);
+      const matchStatus = filterStatus === "all" || s.statusKelulusan.toLowerCase() === filterStatus;
       return matchQuery && matchStatus;
     });
   }, [initialStudents, searchQuery, filterStatus]);
 
+  const statItems = [
+    { label: "Rata-rata nilai", value: String(formatScore(initialStats.avgScore)), hint: `KKM ${initialKuis.kkm}` },
+    {
+      label: "Tingkat kelulusan",
+      value: `${initialStats.passRate}%`,
+      hint: `${initialStats.lulusCount} lulus · ${initialStats.remedialCount} remedial`,
+    },
+    {
+      label: "Nilai tertinggi",
+      value: String(formatScore(initialStats.maxScore)),
+      hint: `terendah ${formatScore(initialStats.minScore)}`,
+    },
+    {
+      label: "Selesai mengerjakan",
+      value: String(initialStats.finishedStudents),
+      hint: `dari ${initialStats.totalStudents} siswa`,
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 pb-20">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center rounded-xl p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Laporan Hasil & Analisis Kuis
-              </p>
-              <span className="inline-flex items-center rounded-full bg-success-subtle px-2.5 py-0.5 text-xs font-semibold text-success-text">
-                Selesai
-              </span>
-            </div>
-            <h1 className="mt-1 text-2xl font-bold text-card-foreground line-clamp-1">
-              {initialKuis.judul}
-            </h1>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Laporan hasil</p>
+          <h1 className="mt-1 line-clamp-1 text-2xl font-bold tracking-tight text-gray-900">
+            {initialKuis.judul}
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {initialKuis.total_soal} soal · {initialKuis.durasi_menit} menit · KKM {initialKuis.kkm}
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/quiz/${kuisId}/preview`}
-            className="flex items-center gap-2 rounded-xl border-none bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input"
-          >
-            <Eye className="h-4 w-4 text-muted-foreground" />
-            <span>Lihat Soal</span>
-          </Link>
+        <div className="flex flex-wrap items-center gap-3">
           <a
             href={`/api/quiz/${kuisId}/export?format=docx`}
-            className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold transition-all hover:bg-secondary/90"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-gray-100 px-4 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            <Download className="h-4 w-4" />
-            <span>Naskah Soal</span>
+            <FileText className="h-4 w-4" />
+            Naskah soal
           </a>
           <a
             href={`/api/quiz/${kuisId}/export?format=xlsx`}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary/90"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <Download className="h-4 w-4" />
-            <span>Nilai (Excel)</span>
+            Unduh nilai (Excel)
           </a>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Rata-rata Nilai
-          </p>
-          <p className="mt-2 text-3xl font-bold text-primary-strong">
-            {initialStats.avgScore}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            KKM: {initialKuis.kkm}
-          </p>
-        </div>
+      <dl className="grid grid-cols-2 gap-y-6 rounded-xl bg-card p-6 shadow-sm sm:grid-cols-4 sm:gap-y-0">
+        {statItems.map((item, index) => (
+          <div
+            key={item.label}
+            className={`sm:px-6 ${index === 0 ? "sm:pl-0" : "sm:border-l sm:border-gray-100"}`}
+          >
+            <dt className="text-sm text-gray-500">{item.label}</dt>
+            <dd className="mt-1 text-3xl font-bold tabular-nums tracking-tight text-gray-900">
+              {item.value}
+            </dd>
+            <dd className="mt-1 text-sm text-gray-400">{item.hint}</dd>
+          </div>
+        ))}
+      </dl>
 
-        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Nilai Tertinggi
-          </p>
-          <p className="mt-2 text-3xl font-bold text-success-text">
-            {initialStats.maxScore}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            Terendah: {initialStats.minScore}
-          </p>
-        </div>
-
-        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Tingkat Kelulusan
-          </p>
-          <p className="mt-2 text-3xl font-bold text-card-foreground">
-            {initialStats.passRate}%
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            {initialStats.lulusCount} Lulus • {initialStats.remedialCount} Remedial
-          </p>
-        </div>
-
-        <div className="rounded-xl border-none bg-card p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Total Siswa
-          </p>
-          <p className="mt-2 text-3xl font-bold text-card-foreground">
-            {initialStats.totalStudents}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            {initialStats.finishedStudents} Selesai mengerjakan
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-2 border-b border-border pb-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab("siswa")}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            activeTab === "siswa"
-              ? "bg-primary text-white shadow-sm"
-              : "text-muted hover:bg-input hover:text-card-foreground"
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          <span>Daftar Nilai Siswa ({initialStudents.length})</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("topik")}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            activeTab === "topik"
-              ? "bg-primary text-white shadow-sm"
-              : "text-muted hover:bg-input hover:text-card-foreground"
-          }`}
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span>Analisis Topik & Soal</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("ai")}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            activeTab === "ai"
-              ? "bg-primary text-white shadow-sm"
-              : "text-muted hover:bg-input hover:text-card-foreground"
-          }`}
-        >
-          <Sparkles className="h-4 w-4 text-amber-500" />
-          <span>AI Analysis</span>
-        </button>
+      <div role="tablist" aria-label="Bagian laporan" className="flex gap-6 border-b border-gray-200">
+        {TABS.map((tab) => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative pb-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:text-primary ${
+                active ? "text-gray-900" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {tab.label}
+              {tab.id === "siswa" && (
+                <span className="ml-1.5 font-normal text-gray-400">{initialStudents.length}</span>
+              )}
+              {active && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" />}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === "siswa" && (
-        <div className="rounded-xl border-none bg-card shadow-sm overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-            <div className="relative min-w-[240px] flex-1">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="overflow-hidden rounded-xl bg-card shadow-sm">
+          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama siswa..."
-                className="w-full rounded-xl bg-input pl-10 pr-4 py-2 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Cari nama siswa"
+                aria-label="Cari nama siswa"
+                className="h-10 w-full rounded-xl bg-gray-50 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as "all" | "lulus" | "remedial")}
-                className="rounded-xl border-none bg-card px-3 py-2 text-xs font-medium text-card-foreground focus:outline-none"
-              >
-                <option value="all">Semua Status</option>
-                <option value="lulus">Lulus</option>
-                <option value="remedial">Remedial</option>
-              </select>
+            <div className="inline-flex rounded-xl bg-gray-100 p-1" role="group" aria-label="Filter status">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  aria-pressed={filterStatus === filter.id}
+                  onClick={() => setFilterStatus(filter.id)}
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                    filterStatus === filter.id
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {filteredStudents.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted">
-              Tidak ada siswa yang sesuai pencarian.
+            <div className="flex flex-col items-center justify-center border-t border-gray-100 py-16 text-center">
+              <Users className="h-10 w-10 text-gray-300" />
+              <p className="mt-3 text-sm font-medium text-gray-900">
+                {initialStudents.length === 0 ? "Belum ada peserta" : "Tidak ada siswa yang sesuai"}
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border-t border-gray-100">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-border bg-gray-50/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
                   <tr>
-                    <th className="px-6 py-3.5">Peringkat</th>
-                    <th className="px-6 py-3.5">Nama Siswa</th>
-                    <th className="px-6 py-3.5">Nilai Akhir</th>
-                    <th className="px-6 py-3.5">Status Kelulusan</th>
-                    <th className="px-6 py-3.5">Jawaban Benar</th>
-                    <th className="px-6 py-3.5">Pelanggaran Tab</th>
-                    <th className="px-6 py-3.5 text-right">Waktu Selesai</th>
+                    <th className="px-6 py-3">Peringkat</th>
+                    <th className="px-6 py-3">Nama siswa</th>
+                    <th className="px-6 py-3">Nilai</th>
+                    <th className="px-6 py-3">Benar</th>
+                    <th className="px-6 py-3">Pindah tab</th>
+                    <th className="px-6 py-3 text-right">Selesai</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredStudents.map((s, idx) => (
-                    <tr key={s.pesertaId} className="hover:bg-input/40 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-card-foreground">
-                        {idx === 0 ? (
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
-                            1
-                          </span>
-                        ) : (
-                          <span className="text-muted">{idx + 1}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-card-foreground">
-                        {s.nama}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-base font-bold text-card-foreground">
-                          {s.score}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {s.statusKelulusan === "lulus" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-success-subtle px-2.5 py-1 text-xs font-bold text-success-text uppercase">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Lulus
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2.5 py-1 text-xs font-bold text-danger-text uppercase">
-                            <XCircle className="h-3.5 w-3.5" />
-                            Remedial
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-muted">
-                        {s.benarCount} / {initialKuis.total_soal}
-                      </td>
-                      <td className="px-6 py-4">
-                        {s.tabViolations > 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2.5 py-0.5 text-xs font-medium text-danger-text">
-                            <AlertTriangle className="h-3 w-3" />
-                            {s.tabViolations}x
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted">0</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-right text-xs text-muted font-mono">
-                        {formatWaktuWIB(s.submittedAt)}
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-gray-100">
+                  {filteredStudents.map((s) => {
+                    const rank = rankById.get(s.pesertaId) ?? 0;
+                    return (
+                      <tr key={s.pesertaId} className="transition-colors hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          {rank === 1 ? (
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+                              1
+                            </span>
+                          ) : (
+                            <span className="pl-1.5 tabular-nums text-gray-500">{rank}</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-medium text-gray-900">{s.nama}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="w-10 text-base font-bold tabular-nums text-gray-900">
+                              {formatScore(s.score)}
+                            </span>
+                            {s.statusKelulusan === "lulus" ? (
+                              <span className="rounded-xl bg-success-subtle px-2 py-0.5 text-xs font-semibold text-success-text">
+                                Lulus
+                              </span>
+                            ) : (
+                              <span className="rounded-xl bg-danger-subtle px-2 py-0.5 text-xs font-semibold text-danger-text">
+                                Remedial
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 tabular-nums text-gray-500">
+                          {s.benarCount}/{initialKuis.total_soal}
+                        </td>
+                        <td className="px-6 py-4">
+                          {s.tabViolations > 0 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-danger-subtle px-2.5 py-0.5 text-xs font-medium text-danger-text">
+                              <AlertTriangle className="h-3 w-3" />
+                              {s.tabViolations}x
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-gray-500">
+                          {formatWaktuWIB(s.submittedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -368,98 +328,62 @@ export function TeacherResultClient({
         </div>
       )}
 
-      {activeTab === "topik" && (
-        <div className="space-y-6">
-          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
-            <h2 className="text-base font-bold text-card-foreground mb-1">
-              Tingkat Penguasaan per Topik
-            </h2>
-            <p className="text-xs text-muted mb-6">
-              Membantu guru mengidentifikasi materi yang sudah dikuasai maupun materi yang perlu remedial.
-            </p>
-
-            <div className="space-y-4">
-              {initialTopicAnalysis.map((t) => (
-                <div key={t.topik} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-card-foreground font-semibold">
-                      {t.topik} ({t.totalQuestions} soal)
-                    </span>
-                    <span
-                      className={
-                        t.accuracy >= initialKuis.kkm
-                          ? "text-success-text font-bold"
-                          : "text-danger-text font-bold"
-                      }
-                    >
-                      {t.accuracy}% Akurasi
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full rounded-full bg-input overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        t.accuracy >= initialKuis.kkm
-                          ? "bg-success"
-                          : t.accuracy >= 50
-                          ? "bg-warning"
-                          : "bg-danger"
-                      }`}
-                      style={{ width: `${t.accuracy}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-xl border-none bg-card p-6 shadow-sm">
-            <h2 className="text-base font-bold text-card-foreground mb-1">
-              Analisis Per Butir Soal
-            </h2>
-            <p className="text-xs text-muted mb-6">
-              Persentase siswa yang menjawab benar untuk setiap nomor soal.
-            </p>
-
-            <div className="space-y-4">
-              {initialQuestionAnalysis.map((q) => (
-                <div
-                  key={q.soalId}
-                  className="rounded-xl border-none bg-gray-50/50 p-4 space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-xl bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
-                        Soal {q.urutan}
-                      </span>
-                      <span className="text-xs font-medium text-muted">
-                        {q.topik}
-                      </span>
+      {activeTab === "soal" && (
+        <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+          <section className="self-start rounded-xl bg-card p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-gray-900">Penguasaan per topik</h2>
+            <p className="mt-1 text-sm text-gray-500">Persentase jawaban benar di setiap topik.</p>
+            <ul className="mt-6 space-y-5">
+              {initialTopicAnalysis.map((t) => {
+                const tone = accuracyTone(t.accuracy, initialKuis.kkm);
+                return (
+                  <li key={t.topik}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="font-medium text-gray-900">{t.topik}</span>
+                      <span className={`font-semibold tabular-nums ${tone.text}`}>{t.accuracy}%</span>
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        q.accuracy >= 70
-                          ? "bg-success-subtle text-success-text"
-                          : q.accuracy >= 40
-                          ? "bg-warning-subtle text-warning-text"
-                          : "bg-danger-subtle text-danger-text"
-                      }`}
-                    >
-                      {q.accuracy}% Benar
-                    </span>
-                  </div>
-                  <p className="text-sm text-card-foreground line-clamp-2 leading-relaxed">
-                    {q.teksSoal}
-                  </p>
-                </div>
-              ))}
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${tone.bar}`}
+                        style={{ width: `${t.accuracy}%` }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-400">{t.totalQuestions} soal</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          <section className="overflow-hidden rounded-xl bg-card shadow-sm">
+            <div className="px-6 py-5">
+              <h2 className="text-base font-semibold text-gray-900">Per butir soal</h2>
+              <p className="mt-1 text-sm text-gray-500">Persentase siswa yang menjawab benar.</p>
             </div>
-          </div>
+            <ul className="divide-y divide-gray-100 border-t border-gray-100">
+              {initialQuestionAnalysis.map((q) => {
+                const tone = accuracyTone(q.accuracy, initialKuis.kkm);
+                return (
+                  <li key={q.soalId} className="flex items-start gap-4 px-6 py-4">
+                    <span className="mt-0.5 w-8 shrink-0 text-sm font-semibold tabular-nums text-gray-400">
+                      {q.urutan}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-sm leading-relaxed text-gray-900">{q.teksSoal}</p>
+                      <p className="mt-1 text-xs text-gray-400">{q.topik}</p>
+                    </div>
+                    <span className={`shrink-0 text-sm font-semibold tabular-nums ${tone.text}`}>
+                      {q.accuracy}%
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
         </div>
       )}
 
-      {activeTab === "ai" && (
-        <ClassroomAnalysisTab kuisId={kuisId} />
-      )}
+      {activeTab === "ai" && <ClassroomAnalysisTab kuisId={kuisId} />}
     </div>
   );
 }
