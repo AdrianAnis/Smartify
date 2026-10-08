@@ -1,0 +1,15 @@
+.git
+.github
+.next
+.vscode
+node_modules
+.env*
+!.env.example
+npm-debug.log*
+tsconfig.tsbuildinfo
+docs
+*.md
+Dockerfile
+docker-compose.yml
+deploy.sh
+.dockerignore
