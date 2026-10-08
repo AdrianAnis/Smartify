@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getUserFromToken } from "@/lib/auth/auth-service";
 import { AUTH_COOKIE } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
+import { endQuizIfExpired } from "@/lib/classroom/end-quiz";
 import { TeacherMonitorClient } from "@/components/classroom/TeacherMonitorClient";
 
 export default async function QuizMonitorPage({
@@ -59,6 +60,8 @@ export default async function QuizMonitorPage({
   if (!kuis || (kuis.guru_id !== user.user_id && user.role !== "admin")) {
     redirect("/dashboard");
   }
+
+  if (await endQuizIfExpired(kuis)) redirect(`/quiz/${id}/monitor`);
 
   if (realtimeSessionError) {
     console.error("Failed to load quiz realtime channel:", realtimeSessionError);

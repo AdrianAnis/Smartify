@@ -52,6 +52,12 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
   const [loggingOut, setLoggingOut] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+
+  const openPremiumModal = () => {
+    setNotificationOpen(false);
+    setMobileNavOpen(false);
+    setPremiumModalOpen(true);
+  };
   const [quotaInfo, setQuotaInfo] = useState<{ used: number; limit: number; remaining: number; isPremium: boolean; expiredAt?: string } | null>(null);
   const [quotaLoaded, setQuotaLoaded] = useState(false);
 
@@ -101,7 +107,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
           iconColorClass: 'text-amber-600',
           action: {
             label: 'Perpanjang Sekarang',
-            onClick: () => setPremiumModalOpen(true)
+            onClick: openPremiumModal
           }
         });
       } else {
@@ -136,7 +142,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
         iconColorClass: 'text-gray-600',
         action: {
           label: 'Lihat Penawaran Premium',
-          onClick: () => setPremiumModalOpen(true)
+          onClick: openPremiumModal
         }
       });
     }
@@ -291,7 +297,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
 
           <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
             <button 
-              onClick={() => setPremiumModalOpen(true)}
+              onClick={openPremiumModal}
               className="hidden md:flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 px-4 py-1.5 text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
             >
               {user?.subscription_status === 'premium' && user?.expired_at && new Date(user.expired_at) > new Date() ? (
@@ -321,7 +327,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
               {notificationOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotificationOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-80 rounded-xl bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden flex flex-col max-h-[80vh]">
+                  <div className="fixed inset-x-4 top-16 mt-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:w-80 rounded-xl bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden flex flex-col max-h-[80vh]">
                     <div className="border-b border-border bg-gray-50 px-4 py-3 flex items-center justify-between shrink-0">
                       <h3 className="text-sm font-bold text-foreground">Notifikasi</h3>
                       {user?.subscription_status === 'premium' && (
@@ -440,7 +446,7 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
             </div>
             <div className="pt-6 ">
               <button 
-                onClick={() => setPremiumModalOpen(true)}
+                onClick={openPremiumModal}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 px-4 py-3 text-sm font-bold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
               >
                 {user?.subscription_status === 'premium' && user?.expired_at && new Date(user.expired_at) > new Date() ? (

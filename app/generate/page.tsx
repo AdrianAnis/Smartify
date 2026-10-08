@@ -40,42 +40,47 @@ const LOADING_STEPS = [
 const inputClass =
   "w-full rounded-xl bg-input px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+function parseCount(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  return digits === "" ? null : Number(digits);
+}
+
+function inRange(value: number | null, min: number, max: number) {
+  return value !== null && value >= min && value <= max;
 }
 
 function NumberField({
   label,
   value,
   onChange,
-  min,
-  max,
   suffix,
+  invalid = false,
+  helper,
 }: {
   label: string;
-  value: number;
-  onChange: (value: number) => void;
-  min: number;
-  max: number;
+  value: number | null;
+  onChange: (value: number | null) => void;
   suffix: string;
+  invalid?: boolean;
+  helper?: string;
 }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-label">{label}</label>
       <div className="relative">
         <input
-          type="number"
+          type="text"
           inputMode="numeric"
-          value={value}
-          min={min}
-          max={max}
-          onChange={(e) => onChange(clamp(parseInt(e.target.value, 10), min, max))}
-          className={`${inputClass} pr-20`}
+          value={value ?? ""}
+          onChange={(e) => onChange(parseCount(e.target.value))}
+          aria-invalid={invalid}
+          className={`${inputClass} pr-20 ${invalid ? "ring-2 ring-danger focus:ring-danger" : ""}`}
         />
         <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted">
           {suffix}
         </span>
       </div>
+      {invalid && helper && <p className="mt-1.5 text-xs text-danger-text">{helper}</p>}
     </div>
   );
 }
@@ -87,10 +92,11 @@ export default function GenerateQuizPage() {
   const [title, setTitle] = useState("");
   const [quizType, setQuizType] = useState<QuizType>("pilihan_ganda");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
-  const [pilganCount, setPilganCount] = useState(10);
-  const [isianCount, setIsianCount] = useState(5);
-  const [duration, setDuration] = useState(45);
-  const [kkm, setKkm] = useState(75);
+  const [pilganCount, setPilganCount] = useState<number | null>(10);
+  const [isianCount, setIsianCount] = useState<number | null>(5);
+  const [duration, setDuration] = useState<number | null>(45);
+  const [kkm, setKkm] = useState<number | null>(75);
+  const [submitted, setSubmitted] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -117,9 +123,14 @@ export default function GenerateQuizPage() {
 
   const maxQuestions = isPremium ? PREMIUM_MAX_QUESTIONS : FREE_TRIAL_MAX_QUESTIONS;
   const effectiveType: QuizType = isPremium ? quizType : "pilihan_ganda";
-  const pilgan = effectiveType === "isian_singkat" ? 0 : pilganCount;
-  const isian = effectiveType === "pilihan_ganda" ? 0 : isianCount;
+  const pilgan = effectiveType === "isian_singkat" ? 0 : pilganCount ?? 0;
+  const isian = effectiveType === "pilihan_ganda" ? 0 : isianCount ?? 0;
   const totalQuestions = pilgan + isian;
+  const pilganMissing = effectiveType !== "isian_singkat" && !inRange(pilganCount, 1, Number.MAX_SAFE_INTEGER);
+  const isianMissing = effectiveType !== "pilihan_ganda" && !inRange(isianCount, 1, Number.MAX_SAFE_INTEGER);
+  const overLimit = totalQuestions > maxQuestions;
+  const durationInvalid = !inRange(duration, 1, 180);
+  const kkmInvalid = !inRange(kkm, 0, 100);
 
   const selectFile = (selected: File | undefined) => {
     setError("");
@@ -138,21 +149,18 @@ export default function GenerateQuizPage() {
   const validationError = (() => {
     if (!file) return "Unggah materi PDF terlebih dahulu";
     if (!title.trim()) return "Judul kuis wajib diisi";
-    if (totalQuestions < 1) return "Jumlah soal minimal 1";
-    if (effectiveType === "campuran" && (pilgan < 1 || isian < 1)) {
-      return "Soal campuran butuh minimal 1 pilihan ganda dan 1 isian singkat";
-    }
-    if (totalQuestions > maxQuestions) {
+    if (pilganMissing || isianMissing) return "Isi jumlah soal minimal 1";
+    if (overLimit) {
       return `Jumlah soal maksimal ${maxQuestions} untuk paket ${isPremium ? "Premium" : "Free Trial"}`;
     }
+    if (durationInvalid) return "Durasi harus 1 sampai 180 menit";
+    if (kkmInvalid) return "KKM harus 0 sampai 100";
     return "";
   })();
 
   const handleGenerate = async () => {
-    if (validationError || !file) {
-      setError(validationError);
-      return;
-    }
+    setSubmitted(true);
+    if (validationError || !file) return;
 
     setError("");
     setLimitError("");
@@ -356,9 +364,8 @@ export default function GenerateQuizPage() {
                   label={effectiveType === "campuran" ? "Pilihan Ganda" : "Jumlah Soal"}
                   value={pilganCount}
                   onChange={setPilganCount}
-                  min={1}
-                  max={maxQuestions}
                   suffix="SOAL"
+                  invalid={overLimit || (submitted && pilganMissing)}
                 />
               )}
               {effectiveType !== "pilihan_ganda" && (
@@ -366,16 +373,25 @@ export default function GenerateQuizPage() {
                   label={effectiveType === "campuran" ? "Isian Singkat" : "Jumlah Soal"}
                   value={isianCount}
                   onChange={setIsianCount}
-                  min={1}
-                  max={maxQuestions}
                   suffix="SOAL"
+                  invalid={overLimit || (submitted && isianMissing)}
                 />
               )}
             </div>
-            <p className="-mt-3 text-xs text-muted">
-              Total {totalQuestions} soal, maksimal {maxQuestions} soal (
-              {isPremium ? "Premium" : "Free Trial"})
-            </p>
+            {overLimit ? (
+              <p className="-mt-3 text-xs text-danger-text">
+                Total {totalQuestions} soal melebihi batas {maxQuestions} soal (
+                {isPremium ? "Premium" : "Free Trial"}).
+                {!isPremium && " Kurangi jumlah soal atau upgrade ke Premium."}
+              </p>
+            ) : submitted && (pilganMissing || isianMissing) ? (
+              <p className="-mt-3 text-xs text-danger-text">Isi jumlah soal minimal 1.</p>
+            ) : (
+              <p className="-mt-3 text-xs text-muted">
+                Total {totalQuestions} soal, maksimal {maxQuestions} soal (
+                {isPremium ? "Premium" : "Free Trial"})
+              </p>
+            )}
 
             <div>
               <span className="mb-2 block text-sm font-medium text-label">Tingkat Kesulitan</span>
@@ -403,26 +419,30 @@ export default function GenerateQuizPage() {
                 label="Durasi"
                 value={duration}
                 onChange={setDuration}
-                min={1}
-                max={180}
                 suffix="MENIT"
+                invalid={submitted && durationInvalid}
+                helper="Isi 1 sampai 180 menit."
               />
               <NumberField
                 label="KKM"
                 value={kkm}
                 onChange={setKkm}
-                min={0}
-                max={100}
                 suffix="NILAI"
+                invalid={submitted && kkmInvalid}
+                helper="Isi 0 sampai 100."
               />
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex flex-col items-end gap-2 pt-2">
+              {submitted && validationError && (
+                <p role="alert" className="text-sm text-danger-text">
+                  {validationError}
+                </p>
+              )}
               <button
                 type="button"
                 onClick={handleGenerate}
-                disabled={loading || !!validationError}
-                title={validationError || undefined}
+                disabled={loading}
                 className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Sparkles className="h-4 w-4" />

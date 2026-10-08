@@ -65,7 +65,7 @@ export default function DashboardPage() {
           Dashboard
         </p>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="text-xl font-bold text-card-foreground sm:text-2xl">
+          <h1 className="text-2xl font-bold text-card-foreground">
             Koleksi Kuis Saya
           </h1>
 
@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="flex items-center rounded-xl border border-border bg-card p-1">
+              <div className="hidden items-center rounded-xl border border-border bg-card p-1 sm:flex">
                 {(["grid", "list"] as const).map((mode) => {
                   const Icon = mode === "grid" ? LayoutGrid : List;
                   return (

@@ -4,7 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const PARTICIPANT_COOKIE = "participant_token";
 
-const ANSWER_GRACE_MS = 15_000;
+export const ANSWER_GRACE_MS = 15_000;
 
 export async function openWaitingRoom(kuisId: number) {
   await supabaseServer

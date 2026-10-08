@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
 import { supabaseServer } from "@/lib/supabase/server";
+import { endQuizIfExpired } from "@/lib/classroom/end-quiz";
 
 export async function GET(
   request: NextRequest,
@@ -34,6 +35,8 @@ export async function GET(
       ]);
 
     if (!auth.ok) return auth.response;
+
+    if (kuis && (await endQuizIfExpired(kuis))) return GET(request, ctx);
 
     const answerCountMap = new Map<number, number>();
     jawabanList?.forEach((j) => {

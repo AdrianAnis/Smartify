@@ -489,7 +489,7 @@ export default function StudentQuizPlayPage({
           </div>
         </div>
 
-        <aside className="sticky top-24 hidden w-64 shrink-0 lg:block">
+        <aside className="sticky top-20 hidden w-64 shrink-0 lg:block">
           <QuestionListPanel
             questions={questions}
             answers={answers}

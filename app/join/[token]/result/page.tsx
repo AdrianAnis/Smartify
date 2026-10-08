@@ -10,8 +10,6 @@ import {
   ChevronUp,
   Clock,
   Loader2,
-  ThumbsDown,
-  ThumbsUp,
   Users,
   X,
   XCircle,
@@ -182,14 +180,13 @@ export default function StudentQuizResultPage({
                 isLulus ? "bg-success-subtle text-success-text" : "bg-danger-subtle text-danger-text"
               }`}
             >
-              {isLulus ? (
-                <ThumbsUp className="h-4 w-4 shrink-0" />
-              ) : (
-                <ThumbsDown className="h-4 w-4 shrink-0" />
-              )}
               <span className="text-sm font-semibold">{isLulus ? "Lulus" : "Remedial"}</span>
-              <span className="text-xs opacity-80">KKM {result.kkm}</span>
             </div>
+            <p className="mt-2 text-xs text-gray-500">
+              {isLulus
+                ? `Nilai mencapai KKM ${result.kkm}`
+                : `Nilai di bawah KKM ${result.kkm}`}
+            </p>
           </div>
 
           <div className="my-6 grid grid-cols-2 gap-3 sm:gap-4">

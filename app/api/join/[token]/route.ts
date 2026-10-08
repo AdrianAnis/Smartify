@@ -5,6 +5,7 @@ import { joinAsParticipant, getParticipantByToken } from "@/lib/classroom/partic
 import { PARTICIPANT_COOKIE } from "@/lib/classroom/session";
 import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
 import { checkRateLimit, rulesFor, tooManyRequests } from "@/lib/auth/rate-limit";
+import { endQuizIfExpired } from "@/lib/classroom/end-quiz";
 
 const MAX_PARTICIPANTS = 200;
 
@@ -27,6 +28,10 @@ export async function GET(
 
     if (!kuis) {
       return NextResponse.json({ error: "Data kuis tidak ditemukan." }, { status: 404 });
+    }
+
+    if (await endQuizIfExpired({ ...kuis, kuis_id: sesi.kuis_id })) {
+      kuis.status = "selesai";
     }
 
     const participantCookie = request.cookies.get(PARTICIPANT_COOKIE)?.value;

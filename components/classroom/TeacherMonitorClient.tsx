@@ -88,7 +88,7 @@ export function TeacherMonitorClient({
       const diffSec = Math.max(0, Math.floor((endTime - now) / 1000));
       setRemainingSeconds(diffSec);
 
-      if (diffSec === 0 && kuis.status === "ongoing") {
+      if (diffSec === 0 && kuis.status === "ongoing" && Math.floor((now - endTime) / 1000) % 5 === 0) {
         void fetchLatest();
       }
     }, 1000);
