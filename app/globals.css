@@ -103,3 +103,18 @@ input[list]::-webkit-calendar-picker-indicator {
     transform: scale(1);
   }
 }
+
+@keyframes wave-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.wave-drift-slow { animation: wave-drift 38s linear infinite; }
+.wave-drift-mid { animation: wave-drift 26s linear infinite reverse; }
+.wave-drift-fast { animation: wave-drift 18s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-drift-slow,
+  .wave-drift-mid,
+  .wave-drift-fast { animation: none; }
+}
