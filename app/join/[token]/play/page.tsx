@@ -548,38 +548,30 @@ export default function StudentQuizPlayPage({
               className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Sebelumnya</span>
+              <span className="lg:hidden">Kembali</span>
+              <span className="hidden lg:inline">Sebelumnya</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            {isLastQuestion ? (
               <button
                 type="button"
                 onClick={() => setSubmitDialogOpen(true)}
-                className="rounded-xl border border-primary/30! bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 lg:hidden"
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
               >
-                Kumpulkan
+                <span className="lg:hidden">Kumpulkan</span>
+                <span className="hidden lg:inline">Selesai</span>
+                <Send className="h-4 w-4" />
               </button>
-
-              {isLastQuestion ? (
-                <button
-                  type="button"
-                  onClick={() => setSubmitDialogOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
-                >
-                  <span>Selesai</span>
-                  <Send className="h-4 w-4" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
-                >
-                  <span>Selanjutnya</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
+              >
+                <span>Selanjutnya</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
           </nav>
         </div>
 
