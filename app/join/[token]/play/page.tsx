@@ -12,6 +12,7 @@ import {
   Grid,
   X,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -49,6 +50,7 @@ function QuestionListPanel({
   currentIndex,
   answeredCount,
   onSelect,
+  onSubmit,
   onClose,
 }: {
   questions: Question[];
@@ -56,20 +58,18 @@ function QuestionListPanel({
   currentIndex: number;
   answeredCount: number;
   onSelect: (index: number) => void;
+  onSubmit: () => void;
   onClose?: () => void;
 }) {
   return (
-    <section
-      aria-label="Daftar Soal"
-      className="rounded-xl border border-border bg-card p-4 shadow-sm"
-    >
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-card-foreground">
-          Daftar Soal
-          <span className="ml-1.5 font-medium text-muted">
-            {answeredCount}/{questions.length}
-          </span>
-        </h3>
+    <section aria-label="Daftar Soal" className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-bold text-card-foreground">Daftar Soal</h3>
+          <p className="mt-0.5 text-xs text-muted">
+            <span className="font-semibold text-primary">{answeredCount}</span> dari {questions.length} sudah dijawab
+          </p>
+        </div>
         {onClose && (
           <button
             type="button"
@@ -82,7 +82,7 @@ function QuestionListPanel({
         )}
       </div>
 
-      <div className="grid max-h-72 grid-cols-5 gap-2 overflow-y-auto p-1">
+      <div className="mt-4 grid max-h-72 grid-cols-5 gap-2 overflow-y-auto p-1">
         {questions.map((question, index) => {
           const isCurrent = index === currentIndex;
           const isAnswered = Boolean(answers[question.soal_id]?.trim());
@@ -94,12 +94,12 @@ function QuestionListPanel({
               onClick={() => onSelect(index)}
               aria-label={`Soal ${index + 1}${isCurrent ? ", aktif" : isAnswered ? ", sudah dijawab" : ", belum dijawab"}`}
               aria-current={isCurrent ? "step" : undefined}
-              className={`flex h-11 w-full items-center justify-center rounded-xl border text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              className={`flex h-10 w-full items-center justify-center rounded-lg text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                 isCurrent
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
                   : isAnswered
-                    ? "border-success bg-success text-white"
-                    : "border-border bg-card text-card-foreground hover:bg-input"
+                    ? "bg-primary/10 text-primary hover:bg-primary/15"
+                    : "border border-border bg-card text-gray-500 hover:border-primary/40! hover:text-primary"
               }`}
             >
               {index + 1}
@@ -108,20 +108,29 @@ function QuestionListPanel({
         })}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-2 border-t border-border pt-3 text-xs text-muted">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-primary bg-primary" />
-          <span>Aktif</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-success bg-success" />
-          <span>Sudah Dijawab</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded border border-border bg-card" />
-          <span>Belum Dijawab</span>
-        </div>
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-border pt-3 text-xs text-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
+          Aktif
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm bg-primary/20" />
+          Dijawab
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm border border-border bg-card" />
+          Belum
+        </span>
       </div>
+
+      <button
+        type="button"
+        onClick={onSubmit}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30! bg-primary/10 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+      >
+        <Send className="h-4 w-4" />
+        Kumpulkan Jawaban
+      </button>
     </section>
   );
 }
@@ -334,11 +343,10 @@ export default function StudentQuizPlayPage({
     }
   }
 
-  function getTimerBg(sec: number | null) {
-    if (sec === null) return "bg-primary";
-    if (sec <= 60) return "bg-danger";
-    if (sec <= 300) return "bg-warning";
-    return "bg-cyan-500";
+  function getTimerTone(sec: number | null) {
+    if (sec !== null && sec <= 60) return "border-danger-border! bg-danger-subtle text-danger-text animate-pulse motion-reduce:animate-none";
+    if (sec !== null && sec <= 300) return "border-warning/30! bg-warning-subtle text-warning-text";
+    return "border-primary/20! bg-primary/10 text-primary";
   }
 
   function formatTimer(sec: number | null) {
@@ -351,36 +359,38 @@ export default function StudentQuizPlayPage({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col" aria-busy="true">
-        <header className="border-b border-border bg-card shadow-sm">
-          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
+        <header className="border-b border-border bg-card">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
             <Skeleton className="h-6 w-28" />
-            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-8 w-24 rounded-full" />
           </div>
         </header>
         <main className="mx-auto flex w-full max-w-6xl flex-1 items-start gap-6 p-4 sm:p-6">
-          <div className="w-full max-w-3xl min-w-0 flex-1 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-            <div className="mb-6 flex items-center justify-between gap-2 border-b border-border pb-4">
+          <div className="min-w-0 flex-1 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex gap-2">
-                <Skeleton className="h-6 w-24 rounded-full" />
-                <Skeleton className="h-6 w-32 rounded-full" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-32 rounded-full" />
               </div>
               <Skeleton className="h-4 w-14" />
             </div>
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="mt-2 h-6 w-2/3" />
+            <Skeleton className="mt-6 h-7 w-full" />
+            <Skeleton className="mt-2 h-7 w-2/3" />
             <div className="mt-8 space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
           </div>
-          <div className="hidden w-64 shrink-0 rounded-xl border border-border bg-card p-4 shadow-sm lg:block">
+          <div className="hidden w-72 shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm lg:block">
             <Skeleton className="h-5 w-28" />
+            <Skeleton className="mt-2 h-3 w-36" />
             <div className="mt-4 grid grid-cols-5 gap-2">
               {Array.from({ length: 10 }).map((_, i) => (
-                <Skeleton key={i} className="h-9 w-9" />
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
+            <Skeleton className="mt-6 h-10 w-full" />
           </div>
         </main>
       </div>
@@ -402,32 +412,27 @@ export default function StudentQuizPlayPage({
   const currentSoal = questions[currentIndex];
   const answeredCount = Object.keys(answers).filter((k) => answers[Number(k)]?.trim()).length;
   const isLastQuestion = currentIndex === questions.length - 1;
+  const progressPercent = Math.round((answeredCount / questions.length) * 100);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur shadow-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/images/logo3.png"
-              alt="Smartify"
-              width={90}
-              height={22}
-              priority
-            />
-            <div className="hidden sm:block h-4 w-[1px] bg-border" />
-            <span className="hidden sm:block text-xs font-semibold text-card-foreground line-clamp-1 max-w-[200px]">
-              {kuis.judul}
-            </span>
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Image src="/images/logo3.png" alt="Smartify" width={100} height={24} priority className="shrink-0" />
+            <div className="hidden h-5 w-px bg-border sm:block" />
+            <span className="hidden truncate text-sm font-semibold text-card-foreground sm:block">{kuis.judul}</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <div
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors ${getTimerBg(
+              role="timer"
+              aria-label="Sisa waktu"
+              className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-bold tabular-nums transition-colors ${getTimerTone(
                 remainingSeconds,
               )}`}
             >
-              <Clock className="h-3.5 w-3.5" />
+              <Clock className="h-4 w-4" />
               <span>{formatTimer(remainingSeconds)}</span>
             </div>
 
@@ -435,38 +440,51 @@ export default function StudentQuizPlayPage({
               type="button"
               onClick={() => setDrawerOpen(true)}
               aria-label={`Buka daftar soal, ${answeredCount} dari ${questions.length} sudah dijawab`}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-card-foreground transition-colors hover:bg-input lg:hidden"
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input lg:hidden"
             >
-              <Grid className="h-3.5 w-3.5 text-primary" />
-              <span>Daftar Soal</span>
+              <Grid className="h-4 w-4 text-primary" />
+              <span className="tabular-nums">
+                {answeredCount}/{questions.length}
+              </span>
             </button>
           </div>
         </div>
+        <div
+          className="h-1 w-full bg-input"
+          role="progressbar"
+          aria-label="Soal terjawab"
+          aria-valuemin={0}
+          aria-valuemax={questions.length}
+          aria-valuenow={answeredCount}
+        >
+          <div className="h-full bg-primary transition-[width] duration-500" style={{ width: `${progressPercent}%` }} />
+        </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 items-start gap-6 p-4 pb-28 sm:p-6 sm:pb-28">
-        <div className="w-full max-w-3xl min-w-0 flex-1">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
-              <div className="flex items-center gap-2">
-                <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  Soal {currentIndex + 1} dari {questions.length}
+      <main className="mx-auto flex w-full max-w-6xl flex-1 items-start gap-6 p-4 pb-24 sm:p-6 sm:pb-24 lg:pb-6">
+        <div className="min-w-0 flex-1">
+          <article className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-primary">
+                  Soal {currentIndex + 1}
+                  <span className="font-medium text-muted"> dari {questions.length}</span>
                 </span>
-                <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                  {currentSoal.topik}
-                </span>
+                {currentSoal.topik && (
+                  <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                    {currentSoal.topik}
+                  </span>
+                )}
               </div>
-              <span className="text-xs text-muted">{currentSoal.poin} Poin</span>
+              <span className="text-xs font-medium text-muted">{currentSoal.poin} poin</span>
             </div>
 
-            <div className="mb-8">
-              <h2 className="text-base font-semibold leading-relaxed text-card-foreground whitespace-pre-line sm:text-lg">
-                {currentSoal.teks_soal}
-              </h2>
-            </div>
+            <h2 className="mt-5 whitespace-pre-line text-lg font-semibold leading-relaxed text-card-foreground sm:text-xl">
+              {currentSoal.teks_soal}
+            </h2>
 
             {currentSoal.tipe_soal === "pilihan_ganda" ? (
-              <div className="space-y-3">
+              <div className="mt-8 space-y-3">
                 {currentSoal.pilihan.map((p, idx) => {
                   const isSelected = answers[currentSoal.soal_id] === p.teks_pilihan;
                   const letter = String.fromCharCode(65 + idx);
@@ -475,31 +493,32 @@ export default function StudentQuizPlayPage({
                     <button
                       key={p.pilihan_id}
                       type="button"
+                      aria-pressed={isSelected}
                       onClick={() => handleSelectAnswer(currentSoal.soal_id, p.teks_pilihan)}
-                      className={`flex w-full min-w-0 items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
-                        isSelected
-                          ? "border-primary bg-cyan-50/60 shadow-sm"
-                          : "border-border hover:bg-gray-50/50"
+                      className={`group flex w-full min-w-0 items-center gap-4 rounded-xl border-2 px-4 py-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                        isSelected ? "border-primary! bg-primary/5" : "border-border hover:border-primary/40! hover:bg-gray-50"
                       }`}
                     >
-                      <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
-                          isSelected
-                            ? "bg-primary text-white"
-                            : "bg-input text-gray-700"
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-colors ${
+                          isSelected ? "bg-primary text-white" : "bg-input text-gray-600 group-hover:text-primary"
                         }`}
                       >
                         {letter}
-                      </div>
-                      <span className="min-w-0 break-words text-sm font-medium text-card-foreground">
+                      </span>
+                      <span className="min-w-0 flex-1 break-words text-sm font-medium text-card-foreground sm:text-base">
                         {p.teks_pilihan}
                       </span>
+                      <CheckCircle2
+                        className={`h-5 w-5 shrink-0 text-primary transition-opacity ${isSelected ? "opacity-100" : "opacity-0"}`}
+                        aria-hidden="true"
+                      />
                     </button>
                   );
                 })}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="mt-8 space-y-3">
                 <label
                   htmlFor="text-answer"
                   className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
@@ -516,28 +535,17 @@ export default function StudentQuizPlayPage({
                 />
               </div>
             )}
-          </div>
-        </div>
+          </article>
 
-        <aside className="sticky top-20 hidden w-64 shrink-0 lg:block">
-          <QuestionListPanel
-            questions={questions}
-            answers={answers}
-            currentIndex={currentIndex}
-            answeredCount={answeredCount}
-            onSelect={setCurrentIndex}
-          />
-        </aside>
-      </main>
-
-      <footer className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur sm:p-4">
-        <div className="mx-auto flex w-full max-w-6xl items-center gap-6">
-          <div className="flex w-full max-w-3xl items-center justify-between gap-3">
+          <nav
+            aria-label="Navigasi soal"
+            className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-card/95 px-4 py-3 backdrop-blur sm:px-6 lg:static lg:mt-4 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none"
+          >
             <button
               type="button"
               onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:bg-input disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Sebelumnya</span>
@@ -547,7 +555,7 @@ export default function StudentQuizPlayPage({
               <button
                 type="button"
                 onClick={() => setSubmitDialogOpen(true)}
-                className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                className="rounded-xl border border-primary/30! bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 lg:hidden"
               >
                 Kumpulkan
               </button>
@@ -556,7 +564,7 @@ export default function StudentQuizPlayPage({
                 <button
                   type="button"
                   onClick={() => setSubmitDialogOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
                 >
                   <span>Selesai</span>
                   <Send className="h-4 w-4" />
@@ -564,19 +572,28 @@ export default function StudentQuizPlayPage({
               ) : (
                 <button
                   type="button"
-                  onClick={() =>
-                    setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))
-                  }
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90"
+                  onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
                 >
                   <span>Selanjutnya</span>
                   <ChevronRight className="h-4 w-4" />
                 </button>
               )}
             </div>
-          </div>
+          </nav>
         </div>
-      </footer>
+
+        <aside className="sticky top-20 hidden w-72 shrink-0 lg:block">
+          <QuestionListPanel
+            questions={questions}
+            answers={answers}
+            currentIndex={currentIndex}
+            answeredCount={answeredCount}
+            onSelect={setCurrentIndex}
+            onSubmit={() => setSubmitDialogOpen(true)}
+          />
+        </aside>
+      </main>
 
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
@@ -594,6 +611,10 @@ export default function StudentQuizPlayPage({
               onSelect={(index) => {
                 setCurrentIndex(index);
                 setDrawerOpen(false);
+              }}
+              onSubmit={() => {
+                setDrawerOpen(false);
+                setSubmitDialogOpen(true);
               }}
               onClose={() => setDrawerOpen(false)}
             />
