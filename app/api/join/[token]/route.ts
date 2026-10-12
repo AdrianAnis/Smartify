@@ -68,7 +68,7 @@ export async function GET(
 
     const { count } = await supabaseServer
       .from("peserta_kuis")
-      .select("*", { count: "exact", head: true })
+      .select("peserta_id", { count: "exact", head: true })
       .eq("kuis_id", sesi.kuis_id);
 
     return NextResponse.json({
