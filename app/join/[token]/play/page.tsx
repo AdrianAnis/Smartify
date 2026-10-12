@@ -11,10 +11,10 @@ import {
   AlertTriangle,
   Grid,
   X,
-  Loader2,
   AlertCircle,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { supabase } from "@/lib/supabase/client";
 
 interface QuestionOption {
@@ -350,9 +350,39 @@ export default function StudentQuizPlayPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-3 text-sm text-muted">Memuat lembar soal...</p>
+      <div className="min-h-screen bg-background flex flex-col" aria-busy="true">
+        <header className="border-b border-border bg-card shadow-sm">
+          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-7 w-20 rounded-full" />
+          </div>
+        </header>
+        <main className="mx-auto flex w-full max-w-6xl flex-1 items-start gap-6 p-4 sm:p-6">
+          <div className="w-full max-w-3xl min-w-0 flex-1 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+            <div className="mb-6 flex items-center justify-between gap-2 border-b border-border pb-4">
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-32 rounded-full" />
+              </div>
+              <Skeleton className="h-4 w-14" />
+            </div>
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="mt-2 h-6 w-2/3" />
+            <div className="mt-8 space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="hidden w-64 shrink-0 rounded-xl border border-border bg-card p-4 shadow-sm lg:block">
+            <Skeleton className="h-5 w-28" />
+            <div className="mt-4 grid grid-cols-5 gap-2">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="h-9 w-9" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

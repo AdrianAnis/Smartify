@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { ClassroomInsight } from "@/lib/quiz/types";
 
 export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
@@ -63,9 +64,30 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
         )}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-gray-500 animate-pulse">Smartify menganalisis pola jawaban siswa...</p>
+          <div className="space-y-8" aria-busy="true">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">Smartify menganalisis pola jawaban siswa...</p>
+              <Skeleton className="h-5 w-64" />
+              <Skeleton className="h-4 w-full max-w-lg" />
+            </div>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-6 w-56" />
+                <Skeleton className="h-5 w-40" />
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/6" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
