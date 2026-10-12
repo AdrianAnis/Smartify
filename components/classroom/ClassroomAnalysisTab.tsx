@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle, RotateCw } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { ClassroomInsight } from "@/lib/quiz/types";
 
 export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
@@ -7,8 +8,15 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
-    useEffect(() => {
+  const retry = () => {
+    setError(null);
+    setLoading(true);
+    setAttempt((value) => value + 1);
+  };
+
+  useEffect(() => {
     async function loadAnalysis() {
       try {
         const res = await fetch("/api/ai/classroom-analysis", {
@@ -16,8 +24,8 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kuisId: Number(kuisId) }),
         });
-        const data = await res.json();
-        
+        const data = await res.json().catch(() => ({}));
+
         if (data.pending) {
           setPendingMessage(data.message);
           return;
@@ -32,15 +40,25 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
       }
     }
     loadAnalysis();
-  }, [kuisId]);
+  }, [kuisId, attempt]);
 
   return (
     <div>
       <div className="rounded-xl bg-white p-6 shadow-sm overflow-hidden">
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-danger-subtle p-4 text-sm font-medium text-danger-text mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <span>{error}</span>
+          <div className="mb-4 flex flex-col gap-3 rounded-xl bg-danger-subtle p-4 text-sm font-medium text-danger-text sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={retry}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <RotateCw className="h-4 w-4" />
+              Coba lagi
+            </button>
           </div>
         )}
 
@@ -63,9 +81,30 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
         )}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-gray-500 animate-pulse">Smartify menganalisis pola jawaban siswa...</p>
+          <div className="space-y-8" aria-busy="true">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">Smartify menganalisis pola jawaban siswa...</p>
+              <Skeleton className="h-5 w-64" />
+              <Skeleton className="h-4 w-full max-w-lg" />
+            </div>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-6 w-56" />
+                <Skeleton className="h-5 w-40" />
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/6" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

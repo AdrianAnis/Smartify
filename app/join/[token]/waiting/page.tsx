@@ -2,9 +2,20 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
-import { Users } from "lucide-react";
+import { BookOpen, Clock, Users } from "lucide-react";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { Skeleton } from "@/components/ui/Skeleton";
+
+interface WaitingQuizInfo {
+  judul: string;
+  totalSoal: number;
+  durasiMenit: number;
+}
+
+const HERO_IMAGE = "/images/join-class.jpg";
+const HERO_TITLE = "Sebentar lagi kuis dimulai";
+const HERO_DESCRIPTION = "Tetap di halaman ini. Soal akan terbuka otomatis begitu guru memulai kuis.";
 
 export default function StudentWaitingPage({
   params,
@@ -17,6 +28,7 @@ export default function StudentWaitingPage({
   const [sesiId, setSesiId] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [jumlahPeserta, setJumlahPeserta] = useState(0);
+  const [quizInfo, setQuizInfo] = useState<WaitingQuizInfo | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const redirectToResultWhenReady = useCallback(
@@ -59,6 +71,7 @@ export default function StudentWaitingPage({
         setKuisId(data.kuisId);
         setSesiId(data.sesiId);
         setJumlahPeserta(data.jumlahPeserta ?? 0);
+        setQuizInfo({ judul: data.judul, totalSoal: data.totalSoal, durasiMenit: data.durasiMenit });
 
         const meRes = await fetch(`/api/join/${t}/me`);
         const meData = await meRes.json();
@@ -87,6 +100,8 @@ export default function StudentWaitingPage({
           await redirectToResultWhenReady(t);
         } else if (res.status === 404) {
           router.replace(`/join/${t}`);
+        } else if (typeof data.jumlahPeserta === "number") {
+          setJumlahPeserta(data.jumlahPeserta);
         }
       } catch (error) {
         console.error("Failed to sync waiting-room quiz status:", error);
@@ -120,50 +135,59 @@ export default function StudentWaitingPage({
     };
   }, [kuisId, sesiId, token, syncQuizStatus]);
 
+  if (!isReady || !quizInfo) {
+    return (
+      <AuthLayout imageSrc={HERO_IMAGE} title={HERO_TITLE} description={HERO_DESCRIPTION}>
+        <div className="space-y-4" aria-busy="true">
+          <Skeleton className="mx-auto h-8 w-44" />
+          <Skeleton className="mx-auto h-4 w-56" />
+          <Skeleton className="mt-6 h-36 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  const details = [
+    { icon: BookOpen, label: "Soal", value: String(quizInfo.totalSoal) },
+    { icon: Clock, label: "Menit", value: String(quizInfo.durasiMenit) },
+    { icon: Users, label: "Peserta", value: String(jumlahPeserta) },
+  ];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-8 flex justify-center">
-          <Image
-            src="/images/logo3.png"
-            alt="Smartify"
-            width={120}
-            height={29}
-            priority
-          />
-        </div>
-
-        <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
-          <div className="mb-6 flex justify-center">
-            <div className="relative flex h-20 w-20 items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
-                <div className="h-10 w-10 rounded-full bg-primary animate-pulse" />
+    <AuthLayout
+      imageSrc={HERO_IMAGE}
+      title={HERO_TITLE}
+      description={HERO_DESCRIPTION}
+      formTitle={nama ? `Halo, ${nama}!` : "Halo!"}
+      formDescription="Kamu sudah berada di ruang tunggu"
+    >
+      <div className="space-y-4">
+        <div className="rounded-xl bg-gray-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Kuis</p>
+          <p className="mt-1 line-clamp-2 text-lg font-bold text-gray-900">{quizInfo.judul}</p>
+          <dl className="mt-4 grid grid-cols-3 gap-3">
+            {details.map((item) => (
+              <div key={item.label} className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <item.icon className="mx-auto h-4 w-4 text-primary" />
+                <dd className="mt-1.5 text-lg font-bold tabular-nums text-gray-900">{item.value}</dd>
+                <dt className="text-xs text-gray-500">{item.label}</dt>
               </div>
-            </div>
-          </div>
-
-          {isReady && nama && (
-            <p className="text-base font-semibold text-card-foreground">
-              Halo, {nama}!
-            </p>
-          )}
-          <p className="mt-1 text-sm text-muted">
-            Menunggu guru memulai kuis...
-          </p>
-
-          <div className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-input px-4 py-3">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-card-foreground">
-              {jumlahPeserta} peserta bergabung
-            </span>
-          </div>
+            ))}
+          </dl>
         </div>
 
-        <p className="mt-4 text-xs text-muted">
-          Jangan tutup halaman ini sebelum kuis dimulai.
-        </p>
+        <div role="status" className="flex items-center gap-4 rounded-xl bg-primary/5 p-4">
+          <span className="relative flex h-3 w-3 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60 motion-reduce:animate-none" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">Menunggu guru memulai kuis</p>
+            <p className="mt-0.5 text-xs text-gray-500">Halaman akan berpindah sendiri, tidak perlu dimuat ulang.</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

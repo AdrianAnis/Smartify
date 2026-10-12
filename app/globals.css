@@ -103,3 +103,16 @@ input[list]::-webkit-calendar-picker-indicator {
     transform: scale(1);
   }
 }
+
+@keyframes ribbon-float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-36px, -22px); }
+}
+
+.ribbon-float-a { animation: ribbon-float 24s ease-in-out infinite; }
+.ribbon-float-b { animation: ribbon-float 30s ease-in-out infinite reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-float-a,
+  .ribbon-float-b { animation: none; }
+}

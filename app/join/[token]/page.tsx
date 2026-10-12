@@ -2,8 +2,15 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Users, BookOpen, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  Users,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 
 interface KuisInfo {
   sesiId: number;
@@ -95,20 +102,32 @@ export default function JoinPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AuthLayout
+        imageSrc="/images/join-class.jpg"
+        title="Siap mengerjakan kuis?"
+        description="Masukkan namamu, tunggu guru memulai, lalu kerjakan kuis bersama teman sekelasmu."
+      >
+        <div className="space-y-4" aria-busy="true">
+          <Skeleton className="mx-auto h-8 w-52" />
+          <Skeleton className="mx-auto h-4 w-64" />
+          <div className="pt-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-2 h-12 w-full" />
+          </div>
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </AuthLayout>
     );
   }
 
   if (error && !kuisInfo) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-subtle">
-            <AlertCircle className="h-8 w-8 text-danger" />
+      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+        <div className="w-full max-w-sm rounded-2xl border border-danger-border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-danger-subtle text-danger">
+            <AlertCircle className="h-6 w-6" />
           </div>
-          <h1 className="text-lg font-semibold text-card-foreground">Tidak Dapat Bergabung</h1>
+          <h1 className="text-lg font-bold text-card-foreground">Tidak Dapat Bergabung</h1>
           <p className="mt-2 text-sm text-muted">{error}</p>
         </div>
       </div>
@@ -116,91 +135,80 @@ export default function JoinPage({
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex justify-center">
-          <Image
-            src="/images/logo3.png"
-            alt="Smartify"
-            width={120}
-            height={29}
-            priority
-          />
-        </div>
+    <AuthLayout
+      imageSrc="/images/join-class.jpg"
+      title="Siap mengerjakan kuis?"
+      description="Masukkan namamu, tunggu guru memulai, lalu kerjakan kuis bersama teman sekelasmu."
+      formTitle={kuisInfo?.judul}
+      formDescription="Masukkan namamu untuk masuk ke ruang tunggu"
+    >
+      <div className="bg-white">
+        <form onSubmit={handleJoin} className="space-y-4">
+          <div>
+            <label
+              htmlFor="nama"
+              className="block text-sm font-medium text-label"
+            >
+              Nama Kamu
+            </label>
 
-        <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
-          <div className="mb-6">
-            <h1 className="text-xl font-bold text-card-foreground line-clamp-2">
-              {kuisInfo?.judul}
-            </h1>
-            <div className="mt-3 flex flex-wrap gap-3">
-              <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                <BookOpen className="h-4 w-4" />
-                {kuisInfo?.totalSoal} soal
-              </span>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                <Clock className="h-4 w-4" />
-                {kuisInfo?.durasiMenit} menit
-              </span>
+            <div className="relative mt-2">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <input
+                id="nama"
+                type="text"
+                autoComplete="off"
+                autoFocus
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                placeholder="Masukkan namamu"
+                maxLength={50}
+                className="w-full rounded-xl bg-input py-3 pr-4 pl-10 text-sm font-medium text-card-foreground transition-colors placeholder:text-muted-foreground focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+                required
+              />
             </div>
           </div>
 
-          <form onSubmit={handleJoin} className="space-y-4">
-            <div>
-              <label
-                htmlFor="nama"
-                className="block text-sm font-medium text-label"
-              >
-                Nama Kamu
-              </label>
-              <div className="relative mt-2">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <input
-                  id="nama"
-                  type="text"
-                  autoComplete="off"
-                  autoFocus
-                  value={nama}
-                  onChange={(e) => setNama(e.target.value)}
-                  placeholder="Masukkan namamu"
-                  maxLength={50}
-                  className="w-full pl-12 pr-4 py-3 bg-input rounded-xl focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-                  required
-                />
-              </div>
+          {notice && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <span>{notice}</span>
             </div>
+          )}
 
-            {notice && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                {notice}
-              </div>
+          {error && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-danger-border bg-danger-subtle p-3 text-xs text-danger-text">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isJoining || !nama.trim()}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          >
+            {isJoining ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Bergabung...</span>
+              </>
+            ) : (
+              <>
+                <span>Bergabung</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
             )}
+          </button>
+        </form>
 
-            {error && (
-              <div className="rounded-xl border border-danger-border bg-danger-subtle px-4 py-3 text-sm text-danger-text">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isJoining || !nama.trim()}
-              className="w-full rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none"
-            >
-              {isJoining ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Bergabung...
-                </span>
-              ) : (
-                "Bergabung"
-              )}
-            </button>
-          </form>
+        <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted">
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+          <span>Tanpa akun • Cukup isi nama dan ikuti kuis</span>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

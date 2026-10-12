@@ -9,11 +9,11 @@ import {
   CheckCircle2,
   ChevronUp,
   Clock,
-  Loader2,
   Users,
   X,
   XCircle,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface LeaderboardEntry {
   rank: number;
@@ -109,9 +109,38 @@ export default function StudentQuizResultPage({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-3 text-sm text-muted">Memuat hasil kuis...</p>
+      <div className="min-h-screen bg-background" aria-busy="true">
+        <header className="bg-card shadow-sm">
+          <div className="mx-auto max-w-4xl space-y-2 px-4 py-4 sm:px-6">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-6 w-56" />
+          </div>
+        </header>
+        <div className="mx-auto mt-6 max-w-4xl space-y-6 px-4 sm:mt-8 sm:px-6">
+          <section className="rounded-xl bg-card p-5 shadow-sm sm:p-8">
+            <div className="flex flex-col items-center py-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="mt-2 h-4 w-32" />
+              <Skeleton className="mt-5 h-20 w-40" />
+              <Skeleton className="mt-6 h-9 w-28" />
+            </div>
+            <div className="my-6 grid grid-cols-2 gap-3 sm:gap-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 border-t border-gray-100 pt-5 sm:grid-cols-2 sm:gap-x-10">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-5 w-full" />
+              ))}
+            </div>
+          </section>
+          <section className="space-y-3 rounded-xl bg-card p-5 shadow-sm sm:p-6">
+            <Skeleton className="h-5 w-48" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </section>
+        </div>
       </div>
     );
   }
