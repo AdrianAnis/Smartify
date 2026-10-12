@@ -104,17 +104,15 @@ input[list]::-webkit-calendar-picker-indicator {
   }
 }
 
-@keyframes wave-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+@keyframes ribbon-float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-36px, -22px); }
 }
 
-.wave-drift-slow { animation: wave-drift 38s linear infinite; }
-.wave-drift-mid { animation: wave-drift 26s linear infinite reverse; }
-.wave-drift-fast { animation: wave-drift 18s linear infinite; }
+.ribbon-float-a { animation: ribbon-float 24s ease-in-out infinite; }
+.ribbon-float-b { animation: ribbon-float 30s ease-in-out infinite reverse; }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave-drift-slow,
-  .wave-drift-mid,
-  .wave-drift-fast { animation: none; }
+  .ribbon-float-a,
+  .ribbon-float-b { animation: none; }
 }

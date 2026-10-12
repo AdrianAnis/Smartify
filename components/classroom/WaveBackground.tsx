@@ -1,42 +1,63 @@
-const HEIGHT = 400;
-const PERIODS = 4;
-
-function buildWave(period: number, amplitude: number, baseline: number) {
-  const half = period / 2;
-  let d = `M0,${baseline}`;
-  for (let i = 0; i < PERIODS; i++) {
-    const x = i * period;
-    d += ` C${x + half * 0.35},${baseline - amplitude * 1.35} ${x + half * 0.65},${baseline - amplitude * 1.35} ${x + half},${baseline}`;
-    d += ` C${x + half * 1.35},${baseline + amplitude * 1.35} ${x + half * 1.65},${baseline + amplitude * 1.35} ${x + period},${baseline}`;
-  }
-  const width = period * PERIODS;
-  return { width, d: `${d} L${width},${HEIGHT} L0,${HEIGHT} Z` };
-}
-
-const LAYERS = [
-  { className: "wave-drift-slow h-[46%] opacity-60", fill: "rgba(42, 158, 221, 0.16)", wave: buildWave(900, 60, 150) },
-  { className: "wave-drift-mid h-[38%] opacity-70", fill: "rgba(42, 158, 221, 0.2)", wave: buildWave(700, 50, 190) },
-  { className: "wave-drift-fast h-[28%]", fill: "rgba(42, 158, 221, 0.26)", wave: buildWave(520, 36, 230) },
+const RIBBONS = [
+  {
+    className: "ribbon-float-a",
+    gradient: "ribbon-a",
+    fill: "M-200,700 C200,520 520,820 880,620 S1380,340 1700,420 L1700,1000 L-200,1000 Z",
+    edge: "M-200,700 C200,520 520,820 880,620 S1380,340 1700,420",
+  },
+  {
+    className: "ribbon-float-b",
+    gradient: "ribbon-b",
+    fill: "M-200,790 C260,640 600,880 980,720 S1420,500 1700,560 L1700,1000 L-200,1000 Z",
+    edge: "M-200,790 C260,640 600,880 980,720 S1420,500 1700,560",
+  },
 ];
 
 export function WaveBackground() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#eaf5fd] via-[#f3f9fe] to-white"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br from-[#e6f3ff] via-[#f3f8ff] to-[#f5f2ff]"
     >
-      <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-sky-200/30 blur-3xl" />
-      {LAYERS.map((layer) => (
-        <svg
-          key={layer.className}
-          className={`absolute bottom-0 left-0 w-[200%] ${layer.className}`}
-          viewBox={`0 0 ${layer.wave.width} ${HEIGHT}`}
-          preserveAspectRatio="none"
-        >
-          <path d={layer.wave.d} fill={layer.fill} />
-        </svg>
-      ))}
+
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <linearGradient id="ribbon-a" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#2a9edd" stopOpacity="0.55" />
+            <stop offset="45%" stopColor="#7fb6ff" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="ribbon-b" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#9bb8ff" stopOpacity="0.5" />
+            <stop offset="50%" stopColor="#c9d6ff" stopOpacity="0.26" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </linearGradient>
+          <filter id="ribbon-soft" x="-10%" y="-20%" width="120%" height="140%">
+            <feGaussianBlur stdDeviation="14" />
+          </filter>
+          <filter id="ribbon-edge" x="-5%" y="-20%" width="110%" height="140%">
+            <feGaussianBlur stdDeviation="1.2" />
+          </filter>
+        </defs>
+
+        {RIBBONS.map((ribbon) => (
+          <g key={ribbon.gradient} className={ribbon.className}>
+            <path d={ribbon.fill} fill={`url(#${ribbon.gradient})`} filter="url(#ribbon-soft)" />
+            <path
+              d={ribbon.edge}
+              fill="none"
+              stroke="#ffffff"
+              strokeOpacity="0.85"
+              strokeWidth="2"
+              filter="url(#ribbon-edge)"
+            />
+          </g>
+        ))}
+      </svg>
     </div>
   );
 }
