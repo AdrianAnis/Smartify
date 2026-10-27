@@ -7,7 +7,7 @@ import { publishQuizRealtimeEvent } from "@/lib/classroom/realtime";
 import { checkRateLimit, rulesFor, tooManyRequests } from "@/lib/auth/rate-limit";
 import { endQuizIfExpired } from "@/lib/classroom/end-quiz";
 
-const MAX_PARTICIPANTS = 200;
+const MAX_PARTICIPANTS = 50;
 
 export async function GET(
   request: NextRequest,

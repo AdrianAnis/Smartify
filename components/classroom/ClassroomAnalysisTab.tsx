@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { AlertCircle, RotateCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { ClassroomInsight } from "@/lib/quiz/types";
@@ -9,6 +10,7 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [locked, setLocked] = useState(false);
 
   const retry = () => {
     setError(null);
@@ -31,6 +33,11 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
           return;
         }
 
+        if (res.status === 403 && data.code === "SUBSCRIPTION_LIMIT") {
+          setLocked(true);
+          return;
+        }
+
         if (!res.ok) throw new Error(data.error || "Gagal membuat analisis");
         setAnalysis(data.analysis);
       } catch (err) {
@@ -45,6 +52,21 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
   return (
     <div>
       <div className="rounded-xl bg-white p-6 shadow-sm overflow-hidden">
+        {locked && !loading && (
+          <div className="text-center py-8">
+            <h3 className="text-gray-900 font-bold mb-2">AI Insight khusus Premium</h3>
+            <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">
+              Upgrade ke Premium untuk melihat materi yang paling banyak belum dipahami siswa beserta strategi perbaikannya.
+            </p>
+            <Link
+              href="/payment/checkout"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Upgrade ke Premium
+            </Link>
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 flex flex-col gap-3 rounded-xl bg-danger-subtle p-4 text-sm font-medium text-danger-text sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
@@ -71,7 +93,7 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
           </div>
         )}
 
-        {!analysis && !pendingMessage && !error && !loading && (
+        {!analysis && !pendingMessage && !error && !loading && !locked && (
           <div className="text-center py-8">
             <h3 className="text-gray-900 font-bold mb-2">Belum Ada Analisis</h3>
             <p className="text-sm text-gray-500 max-w-md mx-auto">
@@ -144,6 +166,24 @@ export function ClassroomAnalysisTab({ kuisId }: { kuisId: string }) {
                       </p>
                     </div>
                   </div>
+
+                  {item.students && item.students.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="font-bold text-gray-800 text-sm">
+                        Siswa yang perlu penguatan ({item.students.length})
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {item.students.map((student) => (
+                          <span
+                            key={student.nama}
+                            className="rounded-xl bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
+                          >
+                            {student.nama} · {student.salah}/{student.total} salah
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

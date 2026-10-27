@@ -108,8 +108,9 @@ export default function CheckoutPage() {
                 <span className="font-bold text-foreground">Rp 79.000</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-2 pt-4">
-                <li>• 200 soal / hari</li>
+                <li>• 50 soal / hari</li>
                 <li>• Semua Jenis Soal</li>
+                <li>• AI Insight analisis kelas</li>
                 <li>• Prioritas AI Processing</li>
               </ul>
             </div>
