@@ -126,7 +126,7 @@ export function PremiumModal({ isOpen, onClose, currentPlan, expiredAt }: Premiu
                 <div className="bg-primary/20 rounded-full p-1 mt-0.5">
                   <Check className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <span>Maksimal <strong>200 nomor soal</strong> per hari</span>
+                <span>Maksimal <strong>50 nomor soal</strong> per hari</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-foreground">
                 <div className="bg-primary/20 rounded-full p-1 mt-0.5">
@@ -150,7 +150,7 @@ export function PremiumModal({ isOpen, onClose, currentPlan, expiredAt }: Premiu
                 <div className="bg-primary/20 rounded-full p-1 mt-0.5">
                   <Check className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <span>Mendapat Insight AI lebih detail dan jelas</span>
+                <span>Akses <strong>AI Insight</strong> analisis kelas</span>
               </li>
             </ul>
 

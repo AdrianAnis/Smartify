@@ -29,6 +29,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
+    const { error: transactionError } = await supabaseServer.from("payment_transactions").insert({
+      user_id: user.user_id,
+      amount: 79000,
+      description: "Smartify Premium 30 hari",
+      method: "QRIS",
+      status: "paid",
+    });
+    if (transactionError) console.error("Record transaction error:", transactionError);
+
     return NextResponse.json({ success: true, message: "Payment successful" });
   } catch (error) {
     console.error("Payment simulation error:", error);

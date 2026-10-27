@@ -46,10 +46,10 @@ export function AuthLayout({ children, title, description, formTitle, formDescri
             <div className="flex flex-col items-center text-center mb-8">
               <Link href="/" className="mt-6 mb-6">
                 <Image
-                  src="/images/logo3.png"
+                  src="/logo_smartify.svg"
                   alt="Logo Smartify"
                   width={160}
-                  height={52}
+                  height={38}
                   priority
                 />
               </Link>

@@ -1,5 +1,12 @@
+export interface ClassroomInsightStudent {
+  nama: string;
+  salah: number;
+  total: number;
+}
+
 export interface ClassroomInsightTopic {
   materi: string;
+  students?: ClassroomInsightStudent[];
   error_percentage: number;
   problematic_questions: string;
   why_difficult: string;

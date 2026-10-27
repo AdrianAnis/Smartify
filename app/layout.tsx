@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   description:
     "Smartify is a digital platform in Indonesia that helps users generate quizzes quickly and efficiently. It enables students to practice and improve their understanding, while allowing educators to create assessments in a more practical and scalable way using intelligent technology.",
   icons: {
-    icon: "/images/logo2.png",
-    shortcut: "/images/logo2.png",
-    apple: "/images/logo2.png",
+    icon: "/icon_smartify.svg",
+    shortcut: "/icon_smartify.svg",
+    apple: "/apple-icon.png",
   },
 };
 

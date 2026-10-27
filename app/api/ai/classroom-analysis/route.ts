@@ -5,6 +5,7 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { requireQuizOwner } from "@/lib/quiz/quiz-owner";
 import type { QuestionScore } from "@/lib/classroom/quiz-play";
 import type { ClassroomInsight } from "@/lib/quiz/types";
+import { isPremiumEffective } from "@/lib/subscription/plan";
 
 const MIN_ERROR_RATE = 30;
 const TOTAL_BUDGET_MS = 80_000;
@@ -84,6 +85,8 @@ async function buildInsight(ai: GoogleGenAI, kuisId: number, judul: string): Pro
   
   const topicStats: Record<string, { attempts: number; correct: number }> = {};
   const questionStats: Record<number, { attempts: number; correct: number }> = {};
+  const namaMap = new Map(pesertaList.map((p) => [p.peserta_id, p.nama as string]));
+  const studentTopicStats: Record<string, Map<number, { salah: number; total: number }>> = {};
 
   hasilList.forEach((hasil) => {
     if (Array.isArray(hasil.score_per_question)) {
@@ -102,6 +105,12 @@ async function buildInsight(ai: GoogleGenAI, kuisId: number, judul: string): Pro
           topicStats[soal.topik].correct++;
           questionStats[sId].correct++;
         }
+
+        if (!studentTopicStats[soal.topik]) studentTopicStats[soal.topik] = new Map();
+        const studentStat = studentTopicStats[soal.topik].get(hasil.peserta_id) ?? { salah: 0, total: 0 };
+        studentStat.total++;
+        if (!sq.is_benar) studentStat.salah++;
+        studentTopicStats[soal.topik].set(hasil.peserta_id, studentStat);
       });
     }
   });
@@ -149,6 +158,7 @@ Tugas Anda:
 Buatkan "Insight AI" yang mendetail, sangat praktis, dan langsung dapat dieksekusi oleh Guru. 
 Untuk bagian "why_difficult" dan "strategy", tulislah penjelasan yang lumayan panjang dan terstruktur (sekitar 2-3 kalimat per poin), bukan hanya beberapa kata singkat. Jelaskan secara spesifik letak kebingungan siswa dari konteks soalnya.
 Namun tetap pertahankan gaya bahasa yang ringkas, profesional, dan tidak berbunga-bunga (jangan AI Slop).
+Daftar siswa per topik ditambahkan sistem secara terpisah, jadi jangan menyebut nama siswa pada jawaban Anda.
 Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan topik lain, dan jangan membahas materi yang sudah dikuasai siswa.
 `;
 
@@ -242,7 +252,22 @@ Hanya bahas topik yang tercantum pada "Data Topik" di atas. Jangan menambahkan t
   const aiText = response.text;
   if (!aiText) throw new Error("Gemini returned empty response");
 
-  const analysis = sanitizeAnalysis(JSON.parse(aiText));
+  const parsed = sanitizeAnalysis(JSON.parse(aiText));
+
+  const studentsForTopic = (materi: string) => {
+    const key = String(materi ?? "").trim().toLowerCase();
+    const topik = Object.keys(studentTopicStats).find((t) => t.trim().toLowerCase() === key);
+    if (!topik) return [];
+    return Array.from(studentTopicStats[topik].entries())
+      .filter(([pesertaId, stat]) => namaMap.has(pesertaId) && stat.salah / stat.total >= 0.5)
+      .map(([pesertaId, stat]) => ({ nama: namaMap.get(pesertaId) as string, salah: stat.salah, total: stat.total }))
+      .sort((a, b) => b.salah / b.total - a.salah / a.total || a.nama.localeCompare(b.nama));
+  };
+
+  const analysis: ClassroomInsight = {
+    ...parsed,
+    topics: parsed.topics.map((t) => ({ ...t, students: studentsForTopic(t.materi) })),
+  };
 
   await supabaseServer
     .from("kuis")
@@ -256,6 +281,13 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!isPremiumEffective(user.subscription_status, user.expired_at)) {
+      return NextResponse.json(
+        { error: "AI Insight hanya tersedia untuk paket Premium.", code: "SUBSCRIPTION_LIMIT" },
+        { status: 403 },
+      );
+    }
 
     const apiKey = process.env.API_GEMINI_QUIZ;
     if (!apiKey) {
