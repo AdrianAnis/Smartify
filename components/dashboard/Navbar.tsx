@@ -103,10 +103,10 @@ export function Navbar({ backHref, backLabel = "Kembali", title }: NavbarProps =
             ) : (
               <Link href="/dashboard" className="flex items-center">
                 <Image
-                  src="/images/logo3.png"
+                  src="/logo_smartify.svg"
                   alt="Smartify Logo"
                   width={120}
-                  height={40}
+                  height={29}
                   priority
                   className="h-7 w-auto"
                 />

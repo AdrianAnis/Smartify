@@ -419,7 +419,7 @@ export default function StudentQuizPlayPage({
       <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Image src="/images/logo3.png" alt="Smartify" width={100} height={24} priority className="shrink-0" />
+            <Image src="/logo_smartify.svg" alt="Smartify" width={100} height={24} priority className="shrink-0" />
             <div className="hidden h-5 w-px bg-border sm:block" />
             <span className="hidden truncate text-sm font-semibold text-card-foreground sm:block">{kuis.judul}</span>
           </div>

@@ -36,7 +36,7 @@ interface Props {
   initialPeserta: Peserta[];
 }
 
-const QR_LOGO = { src: "/images/logo2.png", excavate: true };
+const QR_LOGO = { src: "/images/icon_smartify.png", excavate: true };
 
 function readCssColor(name: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
