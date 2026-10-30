@@ -1,28 +1,36 @@
-Smartify
-========
+<div align="center">
 
-**Precision in Learning.**
+<img src="public/logo_smartify.svg" alt="Smartify" width="360">
 
-Smartify adalah platform pembuat kuis berbasis AI untuk guru dan siswa di Indonesia. Guru mengunggah materi PDF, AI menyusun soal beserta pembahasannya, lalu kuis dijalankan langsung di kelas lewat QR code dan dipantau secara realtime. Setelah selesai, nilai dan analisis penguasaan topik tersedia otomatis.
+<h1>Soal tersusun otomatis. Kelas berjalan lebih cerdas.</h1>
 
-**Navigasi:** [Masalah yang Diselesaikan](#masalah-yang-diselesaikan) · [Cara Kerja](#cara-kerja) · [Paket](#paket) · [Arsitektur](#arsitektur) · [Tech Stack](#tech-stack) · [Memulai](#memulai) · [Struktur Proyek](#struktur-proyek)
+<p>
+  Platform pembuat kuis berbasis AI untuk guru dan siswa di Indonesia.<br>
+  Unggah materi PDF, jalankan kuis langsung di kelas lewat QR code,<br>
+  lalu baca hasil belajar siswa tanpa menghitung manual.
+</p>
 
-> Proyek ini sedang dalam pengembangan aktif. Beberapa alur pembayaran masih berjalan dalam mode simulasi di lingkungan development.
+<p>
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/NEXT.JS-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white&labelColor=555555" alt="Next.js 16"></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/REACT-19-087EA4?style=for-the-badge&logo=react&logoColor=white&labelColor=555555" alt="React 19"></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/-TYPESCRIPT-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/TAILWIND-V4-0EA5E9?style=for-the-badge&logo=tailwindcss&logoColor=white&labelColor=555555" alt="Tailwind CSS v4"></a>
+  <a href="https://supabase.com"><img src="https://img.shields.io/badge/-SUPABASE-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"></a>
+  <a href="https://ai.google.dev"><img src="https://img.shields.io/badge/GEMINI-2.5_FLASH-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white&labelColor=555555" alt="Google Gemini 2.5 Flash"></a>
+</p>
 
-![Landing page Smartify](.github/images/landing-hero.png)
+<p>
+  <a href="https://smartifyedu.web.id"><b>Live Demo</b></a> ·
+  <a href="#cara-kerja">Cara Kerja</a> ·
+  <a href="#paket">Paket</a> ·
+  <a href="#arsitektur">Arsitektur</a> ·
+  <a href="#memulai">Memulai</a> ·
+  <a href="#struktur-proyek">Struktur Proyek</a>
+</p>
 
-Tampilan
---------
+<a href=".github/images/landing-full.png"><img src=".github/images/landing-hero.png" alt="Landing page Smartify" width="100%"></a>
 
-| Halaman | Tangkapan layar |
-|---|---|
-| Landing page ([lihat versi penuh](.github/images/landing-full.png)) | ![Landing page](.github/images/landing-hero.png) |
-| Login | ![Login](.github/images/login.png) |
-| Daftar akun | ![Daftar akun](.github/images/register.png) |
-| Dashboard guru | ![Dashboard guru](.github/images/dashboard.png) |
-| Generate kuis dari PDF | ![Generate kuis](.github/images/generate.png) |
-| Pratinjau dan editor soal | ![Pratinjau kuis](.github/images/quiz-preview.png) |
-| Billing dan langganan | ![Billing](.github/images/billing.png) |
+</div>
 
 Masalah yang Diselesaikan
 -------------------------
@@ -95,20 +103,6 @@ flowchart LR
 | `app/api/payment/*` | Pembuatan invoice Mayar dan simulasi pembayaran untuk development |
 | `lib/supabase/server.ts` | Klien Supabase dengan Service Role Key, hanya untuk server (`server-only`) |
 | `lib/supabase/client.ts` | Klien Supabase dengan Anon Key, hanya untuk langganan Realtime |
-
-Tech Stack
-----------
-
-| Lapisan | Teknologi |
-|---|---|
-| Framework | Next.js 16 (App Router), React 19, TypeScript 5 |
-| Styling | Tailwind CSS 4, token warna di `app/globals.css`, font Plus Jakarta Sans |
-| Database | Supabase (PostgreSQL dan Realtime) |
-| Autentikasi | JWT kustom (`jose`), `bcryptjs`, cookie HTTP-only, Google OAuth |
-| AI | Gemini lewat `@google/genai` |
-| Email | Resend |
-| Pembayaran | Mayar |
-| Utilitas | `qrcode.react`, `xlsx`, `docx`, `lucide-react` |
 
 Memulai
 -------

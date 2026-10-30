@@ -15,7 +15,7 @@ export function AuthLayout({ children, title, description, formTitle, formDescri
   const defaultImage = "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop";
 
   return (
-    <div className="h-screen w-full flex bg-white overflow-hidden">
+    <div className="h-dvh w-full flex bg-white overflow-hidden">
       <div className="hidden lg:flex lg:w-[60%] relative bg-gray-100 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
@@ -41,10 +41,10 @@ export function AuthLayout({ children, title, description, formTitle, formDescri
       </div>
 
       <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
-        <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
-          <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
+        <main className="flex-1 flex justify-center px-6 py-6 sm:px-12 sm:py-8">
+          <div className="w-full max-w-[400px] my-auto space-y-6 py-4">
             <div className="flex flex-col items-center text-center mb-4">
-              <Link href="/" className="mt-12 mb-6">
+              <Link href="/" className="mt-2 mb-5">
                 <Image
                   src="/logo_smartify.svg"
                   alt="Logo Smartify"
