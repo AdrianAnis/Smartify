@@ -32,6 +32,15 @@
 
 </div>
 
+Akun Demo
+---------
+
+Coba Smartify langsung di [smartifyedu.web.id](https://smartifyedu.web.id) dengan akun berikut:
+
+| Email | Password |
+|---|---|
+| `testing@gmail.com` | `testing123` |
+
 Masalah yang Diselesaikan
 -------------------------
 
