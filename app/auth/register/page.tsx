@@ -70,7 +70,7 @@ export default function RegisterPage() {
       description="Bergabung dengan ribuan guru lain yang telah meningkatkan efisiensi mengajar mereka dengan Smartify."
       formTitle="Buat Akun Baru"
       formDescription="Isi detail di bawah ini untuk memulai"
-      imageSrc="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2000&auto=format&fit=crop"
+      imageSrc="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2000&auto=format&fit=crop"
     >
       <div className="bg-white">
         {error && (
