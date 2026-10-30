@@ -61,7 +61,7 @@
 
 .landing-hero { position: relative; padding: 92px 24px 76px; overflow: hidden; }
 .landing-hero-copy { position: relative; z-index: 2; max-width: 1000px; margin-inline: auto; text-align: center; animation: landing-arrive .7s ease-out both; }
-.landing-hero h1 { color: var(--foreground); font-size: clamp(38px, 4.3vw, 60px); font-weight: 800; letter-spacing: -.04em; line-height: 1.12; }
+.landing-hero h1 { color: var(--foreground); font-size: clamp(38px, 4.3vw, 60px); font-weight: 500; letter-spacing: -.04em; line-height: 1.12; }
 .landing-hero h1 span { color: var(--primary); }
 .landing-hero-copy > p { color: var(--muted); margin-top: 24px; font-size: 15px; line-height: 1.9; }
 .landing-hero-copy > .landing-hero-description { max-width: 680px; margin: 24px auto 0; color: var(--muted); font-size: 16px; line-height: 1.8; }
