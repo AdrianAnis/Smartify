@@ -3,7 +3,7 @@ import { getUserFromRequest } from "@/lib/auth/auth-service";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.ENABLE_PAYMENT_SIMULATION !== "true") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
