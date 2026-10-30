@@ -5,23 +5,23 @@ Smartify
 
 Smartify adalah platform pembuat kuis berbasis AI untuk guru dan siswa di Indonesia. Guru mengunggah materi PDF, AI menyusun soal beserta pembahasannya, lalu kuis dijalankan langsung di kelas lewat QR code dan dipantau secara realtime. Setelah selesai, nilai dan analisis penguasaan topik tersedia otomatis.
 
-**Navigasi:** [Masalah yang Diselesaikan](#masalah-yang-diselesaikan) · [Cara Kerja](#cara-kerja) · [Paket](#paket) · [Arsitektur](#arsitektur) · [Tech Stack](#tech-stack) · [Memulai](#memulai) · [Struktur Proyek](#struktur-proyek) · [Dokumentasi](#dokumentasi)
+**Navigasi:** [Masalah yang Diselesaikan](#masalah-yang-diselesaikan) · [Cara Kerja](#cara-kerja) · [Paket](#paket) · [Arsitektur](#arsitektur) · [Tech Stack](#tech-stack) · [Memulai](#memulai) · [Struktur Proyek](#struktur-proyek)
 
 > Proyek ini sedang dalam pengembangan aktif. Beberapa alur pembayaran masih berjalan dalam mode simulasi di lingkungan development.
 
-![Landing page Smartify](docs/images/landing-hero.png)
+![Landing page Smartify](.github/images/landing-hero.png)
 
 Tampilan
 --------
 
 | Halaman | Tangkapan layar |
 |---|---|
-| Landing page ([lihat versi penuh](docs/images/landing-full.png)) | ![Landing page](docs/images/landing-hero.png) |
-| Login | ![Login](docs/images/login.png) |
-| Dashboard guru | ![Dashboard guru](docs/images/dashboard.png) |
-| Generate kuis dari PDF | ![Generate kuis](docs/images/generate.png) |
-| Pratinjau dan editor soal | ![Pratinjau kuis](docs/images/quiz-preview.png) |
-| Billing dan langganan | ![Billing](docs/images/billing.png) |
+| Landing page ([lihat versi penuh](.github/images/landing-full.png)) | ![Landing page](.github/images/landing-hero.png) |
+| Login | ![Login](.github/images/login.png) |
+| Dashboard guru | ![Dashboard guru](.github/images/dashboard.png) |
+| Generate kuis dari PDF | ![Generate kuis](.github/images/generate.png) |
+| Pratinjau dan editor soal | ![Pratinjau kuis](.github/images/quiz-preview.png) |
+| Billing dan langganan | ![Billing](.github/images/billing.png) |
 
 Masalah yang Diselesaikan
 -------------------------
@@ -151,7 +151,7 @@ Jangan pernah meng-commit `.env.local`.
 
 ### 4. Siapkan database
 
-Jalankan file migrasi di folder `docs/` secara berurutan pada SQL Editor Supabase, mulai dari `0001_initial_schema.sql`. Bila muncul error `PGRST205` setelah menambah tabel, muat ulang schema cache:
+Buat proyek di Supabase, lalu siapkan tabel yang dibutuhkan lewat SQL Editor. Bila muncul error `PGRST205` setelah menambah tabel, muat ulang schema cache:
 
 ```sql
 NOTIFY pgrst, 'reload schema';
@@ -197,16 +197,8 @@ lib/
 ├── subscription/            paket dan kuota
 ├── supabase/                klien server dan browser
 └── email/                   pengiriman email lewat Resend
-docs/                        migrasi SQL, PRD, dan design system
 proxy.ts                     proteksi rute
 ```
-
-Dokumentasi
------------
-
-- [Status proyek dan handover](docs/PROJECT_STATUS.md)
-- [Design system](docs/DESIGN_SYSTEM.md)
-- [PRD Smartify 2.0](docs/PRD_Smartify_2.0_updated.md)
 
 ---
 
