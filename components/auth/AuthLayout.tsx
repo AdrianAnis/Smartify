@@ -43,8 +43,8 @@ export function AuthLayout({ children, title, description, formTitle, formDescri
       <div className="w-full lg:w-[40%] flex flex-col bg-white overflow-y-auto">
         <main className="flex-1 flex items-center justify-center p-6 sm:p-12 min-h-full">
           <div className="w-full max-w-[400px] mx-auto space-y-8 py-8">
-            <div className="flex flex-col items-center text-center mb-8">
-              <Link href="/" className="mt-6 mb-6">
+            <div className="flex flex-col items-center text-center mb-4">
+              <Link href="/" className="mt-12 mb-6">
                 <Image
                   src="/logo_smartify.svg"
                   alt="Logo Smartify"

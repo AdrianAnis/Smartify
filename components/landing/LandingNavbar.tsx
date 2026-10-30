@@ -9,6 +9,7 @@ const links = [
   { href: "#fitur", label: "Kenapa Smartify" },
   { href: "#cara-kerja", label: "Cara kerja" },
   { href: "#paket", label: "Paket" },
+  { href: "#faq", label: "FAQ" },
 ];
 
 export function LandingNavbar() {

@@ -26,6 +26,7 @@ export function LandingFooter() {
             <a href="#fitur">Kenapa Smartify</a>
             <a href="#cara-kerja">Cara kerja</a>
             <a href="#paket">Paket</a>
+            <a href="#faq">FAQ</a>
           </nav>
           <nav aria-label="Akun Smartify">
             <span>Mulai di sini</span>

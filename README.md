@@ -18,6 +18,7 @@ Tampilan
 |---|---|
 | Landing page ([lihat versi penuh](.github/images/landing-full.png)) | ![Landing page](.github/images/landing-hero.png) |
 | Login | ![Login](.github/images/login.png) |
+| Daftar akun | ![Daftar akun](.github/images/register.png) |
 | Dashboard guru | ![Dashboard guru](.github/images/dashboard.png) |
 | Generate kuis dari PDF | ![Generate kuis](.github/images/generate.png) |
 | Pratinjau dan editor soal | ![Pratinjau kuis](.github/images/quiz-preview.png) |

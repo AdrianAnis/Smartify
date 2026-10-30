@@ -13,6 +13,7 @@ const revealTargets = [
   ".landing-pricing-heading",
   ".landing-pricing-cards > *",
   ".landing-plan-card li",
+  ".landing-faq-list > details",
   ".landing-cta > *",
   ".landing-footer-top > *",
   ".landing-student i",
@@ -26,6 +27,7 @@ const staggerGroups: { selector: string; base: number; step: number; max: number
   { selector: ".landing-steps", base: 0, step: 140, max: 2 },
   { selector: ".landing-pricing-cards", base: 0, step: 140, max: 1 },
   { selector: ".landing-plan-card ul", base: 220, step: 70, max: 5 },
+  { selector: ".landing-faq-list", base: 0, step: 80, max: 6 },
   { selector: ".landing-cta", base: 0, step: 140, max: 1 },
   { selector: ".landing-footer-top", base: 0, step: 100, max: 2 },
 ];

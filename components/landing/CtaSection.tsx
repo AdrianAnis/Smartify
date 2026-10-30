@@ -18,23 +18,6 @@ export function CtaSection() {
           Buat kuis pertamamu
         </Link>
       </div>
-      <div className="landing-cta-art" aria-hidden="true">
-        <div className="landing-cta-sheet">
-          <span>CATATAN KELAS</span>
-          <strong>
-            Ide besar.
-            <br />
-            Mulai dari
-            <br />
-            satu soal.
-          </strong>
-          <i />
-          <i />
-          <i />
-          <span>Smartify</span>
-        </div>
-        <div className="landing-cta-sheet-back" />
-      </div>
     </section>
   );
 }
