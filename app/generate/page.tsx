@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   FileText,
   X,
+  Lock,
 } from "lucide-react";
 import {
   FREE_TRIAL_MAX_QUESTIONS,
@@ -123,6 +124,7 @@ export default function GenerateQuizPage() {
 
   const maxQuestions = isPremium ? PREMIUM_MAX_QUESTIONS : FREE_TRIAL_MAX_QUESTIONS;
   const effectiveType: QuizType = isPremium ? quizType : "pilihan_ganda";
+  const effectiveDifficulty: Difficulty = isPremium || difficulty !== "hard" ? difficulty : "medium";
   const pilgan = effectiveType === "isian_singkat" ? 0 : pilganCount ?? 0;
   const isian = effectiveType === "pilihan_ganda" ? 0 : isianCount ?? 0;
   const totalQuestions = pilgan + isian;
@@ -177,7 +179,7 @@ export default function GenerateQuizPage() {
       formData.append("file", file);
       formData.append("title", title.trim());
       formData.append("type", effectiveType);
-      formData.append("difficulty", difficulty);
+      formData.append("difficulty", effectiveDifficulty);
       formData.append("pilganCount", String(pilgan));
       formData.append("isianCount", String(isian));
       formData.append("duration", String(duration));
@@ -396,21 +398,28 @@ export default function GenerateQuizPage() {
             <div>
               <span className="mb-2 block text-sm font-medium text-label">Tingkat Kesulitan</span>
               <div className="grid grid-cols-3 gap-2 rounded-xl bg-gray-50 p-1">
-                {DIFFICULTY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={difficulty === option.value}
-                    onClick={() => setDifficulty(option.value)}
-                    className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                      difficulty === option.value
-                        ? "bg-card text-primary shadow-sm"
-                        : "text-muted hover:text-card-foreground"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+                {DIFFICULTY_OPTIONS.map((option) => {
+                  const locked = option.value === "hard" && !isPremium;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={effectiveDifficulty === option.value}
+                      aria-label={locked ? `${option.label} (khusus Premium)` : undefined}
+                      title={locked ? "Khusus paket Premium" : undefined}
+                      disabled={locked}
+                      onClick={() => setDifficulty(option.value)}
+                      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                        effectiveDifficulty === option.value
+                          ? "bg-card text-primary shadow-sm"
+                          : "text-muted hover:text-card-foreground disabled:hover:text-muted"
+                      }`}
+                    >
+                      {locked && <Lock className="h-3.5 w-3.5" aria-hidden="true" />}
+                      {option.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
