@@ -101,6 +101,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!premium && difficulty === "hard") {
+      return subscriptionLimit(
+        "Tingkat kesulitan Sulit hanya tersedia untuk paket Premium. Pilih Mudah atau Sedang, atau upgrade ke Premium.",
+      );
+    }
+
     const dailyLimit = premium ? PREMIUM_DAILY_MAX_QUESTIONS : FREE_DAILY_MAX_QUESTIONS;
     const reservation = await reserveGeneration(user.user_id, totalQuestions, dailyLimit);
 
