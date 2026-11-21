@@ -18,6 +18,11 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { supabase } from "@/lib/supabase/client";
 
+const ANSWER_SAVE_RETRIES = 2;
+const ANSWER_RETRY_DELAY_MS = 1000;
+const TEXT_ANSWER_SAVE_DELAY_MS = 600;
+const LEFT_QUIZ_KEY_PREFIX = "smartify-left-quiz-";
+
 interface QuestionOption {
   pilihan_id: number;
   teks_pilihan: string;
@@ -154,8 +159,15 @@ export default function StudentQuizPlayPage({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [violationAlertOpen, setViolationAlertOpen] = useState(false);
   const [violationCount, setViolationCount] = useState(0);
+  const [unsavedCount, setUnsavedCount] = useState(0);
+  const [submitError, setSubmitError] = useState("");
   const isAutoSubmittingRef = useRef(false);
   const lastViolationAtRef = useRef(0);
+  const isLeavingRef = useRef(false);
+  const answersRef = useRef<Record<number, string>>({});
+  const pendingSavesRef = useRef(new Map<number, Promise<boolean>>());
+  const draftTimersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+  const failedSavesRef = useRef(new Set<number>());
 
   useEffect(() => {
     async function loadQuiz(t: string) {
@@ -184,6 +196,7 @@ export default function StudentQuizPlayPage({
         (data.savedAnswers ?? []).forEach((a: { soal_id: number; jawaban_text: string }) => {
           saved[a.soal_id] = a.jawaban_text;
         });
+        answersRef.current = saved;
         setAnswers(saved);
       } catch {
         setError("Terjadi kesalahan koneksi saat memuat kuis.");
@@ -195,29 +208,102 @@ export default function StudentQuizPlayPage({
     void loadQuiz(token);
   }, [token, router]);
 
-  const performSubmit = useCallback(async () => {
-    if (isSubmitting || isAutoSubmittingRef.current) return;
-    isAutoSubmittingRef.current = true;
-    setIsSubmitting(true);
+  const sendAnswer = useCallback(
+    (soalId: number, text: string) => {
+      const attempt = async (retriesLeft: number): Promise<boolean> => {
+        try {
+          const res = await fetch(`/api/join/${token}/answers`, {
+            method: "POST",
+            keepalive: true,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ soalId, jawabanText: text }),
+          });
+          if (res.ok) return true;
+          if (res.status < 500 && res.status !== 429) return false;
+        } catch {}
+        if (retriesLeft === 0) return false;
+        await new Promise((resolve) => setTimeout(resolve, ANSWER_RETRY_DELAY_MS));
+        return attempt(retriesLeft - 1);
+      };
 
-    try {
-      const res = await fetch(`/api/join/${token}/submit`, {
-        method: "POST",
+      const previous = pendingSavesRef.current.get(soalId) ?? Promise.resolve(true);
+      const job = previous.then(async () => {
+        if (answersRef.current[soalId] !== text) return true;
+        const ok = await attempt(ANSWER_SAVE_RETRIES);
+        if (answersRef.current[soalId] === text) {
+          if (ok) failedSavesRef.current.delete(soalId);
+          else failedSavesRef.current.add(soalId);
+          setUnsavedCount(failedSavesRef.current.size);
+        }
+        return ok;
       });
-      const data = await res.json();
-      if (res.ok) {
-        router.replace(`/join/${token}/result`);
-      } else {
-        alert(data.error ?? "Gagal mengumpulkan kuis.");
+
+      pendingSavesRef.current.set(soalId, job);
+      void job.finally(() => {
+        if (pendingSavesRef.current.get(soalId) === job) pendingSavesRef.current.delete(soalId);
+      });
+      return job;
+    },
+    [token],
+  );
+
+  const flushDrafts = useCallback(() => {
+    draftTimersRef.current.forEach((timer, soalId) => {
+      clearTimeout(timer);
+      void sendAnswer(soalId, answersRef.current[soalId] ?? "");
+    });
+    draftTimersRef.current.clear();
+  }, [sendAnswer]);
+
+  useEffect(() => {
+    const timers = draftTimersRef.current;
+    return () => timers.forEach((timer) => clearTimeout(timer));
+  }, []);
+
+  const performSubmit = useCallback(
+    async (force = false) => {
+      if (isSubmitting || isAutoSubmittingRef.current) return;
+      isAutoSubmittingRef.current = true;
+      setIsSubmitting(true);
+      setSubmitError("");
+
+      const stopWithError = (message: string) => {
+        setSubmitError(message);
+        setSubmitDialogOpen(true);
         isAutoSubmittingRef.current = false;
         setIsSubmitting(false);
+      };
+
+      flushDrafts();
+      await Promise.allSettled([...pendingSavesRef.current.values()]);
+      if (failedSavesRef.current.size > 0) {
+        await Promise.allSettled(
+          [...failedSavesRef.current].map((soalId) =>
+            sendAnswer(soalId, answersRef.current[soalId] ?? ""),
+          ),
+        );
       }
-    } catch {
-      alert("Terjadi kesalahan jaringan saat mengumpulkan kuis.");
-      isAutoSubmittingRef.current = false;
-      setIsSubmitting(false);
-    }
-  }, [token, isSubmitting, router]);
+      if (failedSavesRef.current.size > 0 && !force) {
+        stopWithError(
+          `${failedSavesRef.current.size} jawaban belum tersimpan. Periksa koneksi internet, lalu coba kumpulkan lagi.`,
+        );
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/join/${token}/submit`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          router.replace(`/join/${token}/result`);
+          return;
+        }
+        stopWithError(data.error ?? "Gagal mengumpulkan kuis.");
+      } catch {
+        stopWithError("Terjadi kesalahan jaringan saat mengumpulkan kuis. Coba lagi.");
+      }
+    },
+    [token, isSubmitting, router, flushDrafts, sendAnswer],
+  );
 
   useEffect(() => {
     if (!kuis || !kuis.waktuMulaiSesi) return;
@@ -233,7 +319,7 @@ export default function StudentQuizPlayPage({
 
       if (diffSec <= 0) {
         clearInterval(interval);
-        void performSubmit();
+        void performSubmit(true);
       }
     }, 1000);
 
@@ -311,36 +397,81 @@ export default function StudentQuizPlayPage({
   }, [token, isSubmitting, router]);
 
   useEffect(() => {
+    if (!kuis?.kuisId) return;
+    const timer = setTimeout(() => {
+      const key = `${LEFT_QUIZ_KEY_PREFIX}${token}`;
+      let leftBefore = false;
+      try {
+        leftBefore = sessionStorage.getItem(key) === "1";
+        sessionStorage.removeItem(key);
+      } catch {}
+      const navigation = performance.getEntriesByType("navigation")[0] as
+        | PerformanceNavigationTiming
+        | undefined;
+      if (leftBefore && navigation?.type !== "reload") void reportViolation();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [kuis?.kuisId, token, reportViolation]);
+
+  useEffect(() => {
+    function markLeaving() {
+      isLeavingRef.current = true;
+      flushDrafts();
+      try {
+        sessionStorage.setItem(`${LEFT_QUIZ_KEY_PREFIX}${token}`, "1");
+      } catch {}
+    }
+
+    function handlePageShow(event: PageTransitionEvent) {
+      isLeavingRef.current = false;
+      if (event.persisted) void reportViolation();
+    }
+
     function handleVisibilityChange() {
-      if (document.visibilityState === "hidden") {
+      if (document.visibilityState === "hidden" && !isLeavingRef.current) {
         void reportViolation();
       }
     }
 
     function handleBlur() {
-      void reportViolation();
+      if (!isLeavingRef.current) void reportViolation();
     }
 
+    window.addEventListener("beforeunload", markLeaving);
+    window.addEventListener("pagehide", markLeaving);
+    window.addEventListener("pageshow", handlePageShow);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
 
     return () => {
+      window.removeEventListener("beforeunload", markLeaving);
+      window.removeEventListener("pagehide", markLeaving);
+      window.removeEventListener("pageshow", handlePageShow);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [reportViolation]);
+  }, [reportViolation, flushDrafts, token]);
 
-  async function handleSelectAnswer(soalId: number, text: string) {
-    setAnswers((prev) => ({ ...prev, [soalId]: text }));
+  function handleSelectAnswer(soalId: number, text: string, debounce = false) {
+    answersRef.current = { ...answersRef.current, [soalId]: text };
+    setAnswers(answersRef.current);
 
-    try {
-      await fetch(`/api/join/${token}/answers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ soalId, jawabanText: text }),
-      });
-    } catch {
+    const pending = draftTimersRef.current.get(soalId);
+    if (pending) clearTimeout(pending);
+
+    if (!debounce) {
+      draftTimersRef.current.delete(soalId);
+      void sendAnswer(soalId, text);
+      return;
     }
+
+    draftTimersRef.current.set(
+      soalId,
+      setTimeout(() => {
+        draftTimersRef.current.delete(soalId);
+        void sendAnswer(soalId, answersRef.current[soalId] ?? "");
+      }, TEXT_ANSWER_SAVE_DELAY_MS),
+    );
   }
 
   function getTimerTone(sec: number | null) {
@@ -529,13 +660,24 @@ export default function StudentQuizPlayPage({
                   id="text-answer"
                   rows={4}
                   value={answers[currentSoal.soal_id] ?? ""}
-                  onChange={(e) => handleSelectAnswer(currentSoal.soal_id, e.target.value)}
+                  onChange={(e) => handleSelectAnswer(currentSoal.soal_id, e.target.value, true)}
+                  onBlur={flushDrafts}
                   placeholder="Ketik jawaban singkat Anda di sini..."
                   className="w-full rounded-xl border border-border bg-input p-4 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
             )}
           </article>
+
+          {unsavedCount > 0 && (
+            <p
+              role="status"
+              className="mt-4 flex items-center gap-2 rounded-xl border border-warning/30 bg-warning-subtle px-4 py-3 text-sm text-warning-text"
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {unsavedCount} jawaban belum tersimpan. Periksa koneksi internet, jawaban akan dikirim ulang saat dikumpulkan.
+            </p>
+          )}
 
           <nav
             aria-label="Navigasi soal"
@@ -621,8 +763,12 @@ export default function StudentQuizPlayPage({
         confirmLabel="Ya, Kumpulkan Sekarang"
         loadingLabel="Mengumpulkan..."
         loading={isSubmitting}
-        onConfirm={performSubmit}
-        onCancel={() => setSubmitDialogOpen(false)}
+        error={submitError}
+        onConfirm={() => void performSubmit()}
+        onCancel={() => {
+          setSubmitError("");
+          setSubmitDialogOpen(false);
+        }}
       />
 
       {violationAlertOpen && (
