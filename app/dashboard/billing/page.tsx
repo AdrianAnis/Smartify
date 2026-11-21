@@ -64,6 +64,7 @@ function BillingSkeleton() {
 export default function BillingPage() {
   const router = useRouter();
   const [data, setData] = useState<BillingData | null>(null);
+  const [daysRemaining, setDaysRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
@@ -79,6 +80,10 @@ export default function BillingPage() {
         const body = await res.json();
         if (!res.ok) throw new Error(body.error);
         setData(body);
+        if (body.expiredAt) {
+          const msLeft = new Date(body.expiredAt).getTime() - Date.now();
+          setDaysRemaining(Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24))));
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal memuat data billing");
       } finally {
@@ -99,7 +104,6 @@ export default function BillingPage() {
   }
 
   const expiry = data.expiredAt ? new Date(data.expiredAt) : null;
-  const daysRemaining = expiry ? Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
   const usedPercent = Math.min(100, (data.used / data.limit) * 100);
 
   return (
